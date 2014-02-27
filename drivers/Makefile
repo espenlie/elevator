@@ -5,7 +5,7 @@ CFLAGS = -std=c99 -g -Wall -O2 -I . -MMD
 LDFLAGS = -lpthread -lcomedi -g -lm
 
 # list of sources
-ELEVSRC = io.c
+ELEVSRC = elev.c io.c main.c
 
 # program executable file name.
 TARGET = lift
@@ -44,3 +44,6 @@ run: rebuild
 
 .PHONY: all rebuild clean run
 
+
+#Martin Korsgaard, 2006
+#Edited by Anders Petersen, 2014
