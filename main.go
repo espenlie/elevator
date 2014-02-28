@@ -77,7 +77,7 @@ func main() {
     connections         := make(map[string]bool)
 	
 	for _,elevator :=range conf.Elevators{
-		Println(elevator.Address)
+//		Println(elevator.Address)
 		connections[elevator.Address]=false
 	}
     listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
