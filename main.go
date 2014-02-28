@@ -32,15 +32,19 @@ func listener(conn *TCPListener, newConn_c chan Conn){
 
 func networking(newConn_c chan Conn, generatedMsgs_c chan string, receivedMsgs_c chan string, dialConn_c chan Conn) {
     var newConn Conn
+	connMap := make(map[string]Conn)
     for{
         select {
         case newConn = <- dialConn_c:
-		case sendMsg := <- generatedMsgs_c:
-			newConn.Write(append([]byte(sendMsg), []byte{0}...))
+			connMap[newConn.LocalAddr().String()] = newConn
+		case sendMsg := <- generatedMsgs_c:{
+			for _,connection := range connMap{
+				connection.Write(append([]byte(sendMsg), []byte{0}...))
+			}
+		}
         case msg := <-receivedMsgs_c:
             Println(msg)
         case newConn := <- newConn_c:
-//			connMap[newConn.LocalAddr().String()] = newConn
 			go receiver(newConn, receivedMsgs_c)
 	
         }
@@ -76,7 +80,6 @@ func main() {
 		Println(elevator.Address)
 		connections[elevator.Address]=false
 	}
-	Println(connections)
     listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
     listenConn, _ := ListenTCP("tcp", listenAddr)
     receivedMsgs_c  := make(chan string)
@@ -89,6 +92,7 @@ func main() {
 
 	go listener(listenConn, newConn_c)
 	go dialer(connections, conf.Default_Dial_Port, dialConn_c)
+
 	for {
         Scanf("%s", &sendMessage)
         generatedMsgs_c <- sendMessage+"EOL" 
