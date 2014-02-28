@@ -4,7 +4,7 @@
             { "Address":"129.241.187.144"},
             { "Address":"129.241.187.148"},
             { "Address":"129.241.187.142"},
-            { "Address":"129.241.187.152"},
+            { "Address":"129.241.187.152"}
     ],
     "Default_Dial_Port"     :":6969",
     "Default_Listen_Port"   :":1337"
