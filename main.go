@@ -3,7 +3,7 @@ import (
     ."fmt"
     ."net"
     ."strings"
-//  "time"
+    "time"
 //   "drivers"
 	"misc"
 )
@@ -59,6 +59,7 @@ func dialer(elevators map[string]bool, port string, dialconn_c chan Conn){
 					elevators[elevator]=true
 					dialconn_c <-dialConn
 				}
+        	time.Sleep(10000 * time.Millisecond)
 			}
 		}
 	}
