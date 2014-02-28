@@ -1,4 +1,4 @@
 #!/bin/bash
 
-echo export GOPATH=$HOME/LL/elevator/
+export GOPATH=$HOME/LL/elevator/
 
