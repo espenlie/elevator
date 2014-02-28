@@ -54,7 +54,7 @@ func networking(newConn_c chan Conn, generatedMsgs_c chan string, receivedMsgs_c
 func dialer(elevators map[string]bool, port string, dialconn_c chan Conn){
 	for{
 		for elevator,status := range elevators{
-			Println(elevators)
+//			Println(elevators)
 			if !status{
 				dialConn, err := Dial("tcp", elevator+port)
 				if err != nil {
