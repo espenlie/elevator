@@ -2,7 +2,7 @@ package elevator
 
 import (
 //  ."fmt"
-//  "time"
+    "time"
     "drivers"
 )
 
@@ -24,5 +24,6 @@ func FloorUpdater(){
             drivers.SetBit(drivers.FLOOR_IND1)
             drivers.SetBit(drivers.FLOOR_IND2)
         }
+        time.Sleep(100 * time.Millisecond)
     }
 }

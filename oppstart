@@ -1,0 +1,12 @@
+#!/bin/bash
+
+cd;
+if [ -d "$LL/" ]; then
+	cd LL/elevator/;
+	git pull;
+else
+	mkdir LL && cd LL;
+	git clone https://github.com/espenlie/elevator.git >/dev/null;
+	cd elevator;
+fi
+export GOPATH=$HOME/LL/elevator;
