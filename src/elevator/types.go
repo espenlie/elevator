@@ -1,13 +1,20 @@
 package elevator
 
+type ElevatorStatus struct {
+    Host    string
+    State   string
+    Floor   int
+}
+
 type Order struct {
     Direction   string
     Floor       int
 }
 
-type Status struct {
-    State       string
-    LastFloor   int
+type Elevator struct {
+    Status  []ElevatorStatus
+    Queue   []Order   
 }
+
 
     
