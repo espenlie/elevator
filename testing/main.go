@@ -1,15 +1,29 @@
 package main
 
 import (
+    "os/exec"
+    "fmt"
+    )
+
+func getIP() {
+    cmd, err := exec.Command("ifconfig | grep 'inet addr:'").Output()
+    if err != nil {
+        fmt.Println(err)
+    }
+//  out, err := cmd.StdoutPipe()
+    fmt.Printf("%s",cmd)
+}
+
+//import (
 //  "fmt"
-    "drivers"
-    "net"
+//  "drivers"
+//  "net"
 //  "misc"
 //  "elevator"
-)
+//)
 
-const SPEED1 = 4024
-func main() {
+//const SPEED1 = 4024
+//func main() {
     
 //  drivers.IoInit()
 //  for{
@@ -26,4 +40,7 @@ func main() {
 //          drivers.WriteAnalog(drivers.MOTOR,0)
 //      }
 //  }
+//}
+func main() {
+    getIP()
 }

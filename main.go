@@ -36,7 +36,7 @@ func main() {
 	
 	go networking.Listener(listenConn, newConn_c)
 	go networking.Dialer(connections, conf.Default_Dial_Port, dialConn_c)
-
+	go networking.Orderdistr(generatedMsgs_c)
 //	for {
 //      Scanf("%s", &sendMessage)
 //      generatedMsgs_c <- sendMessage+"EOL" 
@@ -56,6 +56,7 @@ func main() {
 			}
 		}
 	Println(status.Source)
+
 	for{
 //		Println("State: ", state)
 		switch state {
