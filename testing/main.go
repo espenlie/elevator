@@ -22,17 +22,16 @@ func main() {
     fmt.Println(unpack.Status.State)
 }
 
-/*
 func getIP() {
-    cmd, err := exec.Command("ifconfig | grep 'inet addr:'").Output()
+    oneliner := "ifconfig | grep 129.241.187 | cut -d' ' -f2 | cut -d':' -f1"
+    cmd, err := exec.Command("bash",
     if err != nil {
         fmt.Println(err)
     }
-//  out, err := cmd.StdoutPipe()
     fmt.Printf("%s",cmd)
 }
 
-
+/*
 func main() {
     stat := &Status{State:      "UP",
                     LastFloor:  2,
