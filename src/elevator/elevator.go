@@ -8,15 +8,15 @@ import (
 const N_FLOORS = 4
 const N_BUTTONS = 3
 
-type elev_button int
+type Elev_button int
 
 const(
-    BUTTON_CALL_UP elev_button = iota
+    BUTTON_CALL_UP Elev_button = iota
     BUTTON_CALL_DOWN
     BUTTON_COMMAND
 )
 
-var lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
+var Lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {drivers.LIGHT_UP1, drivers.LIGHT_DOWN1, drivers.LIGHT_COMMAND1},
     {drivers.LIGHT_UP2, drivers.LIGHT_DOWN2, drivers.LIGHT_COMMAND2},
     {drivers.LIGHT_UP3, drivers.LIGHT_DOWN3, drivers.LIGHT_COMMAND3},
@@ -59,11 +59,11 @@ func FloorUpdater(){
     }
 }
 
-func Elev_set_button_lamp(button elev_button, floor int, value int){
+func Elev_set_button_lamp(button Elev_button, floor int, value int){
     if (value == 1){
-        drivers.SetBit(lamp_channel_matrix[floor][button])
+        drivers.SetBit(Lamp_channel_matrix[floor-1][button])
     }else{
-        drivers.ClearBit(lamp_channel_matrix[floor][button])
+        drivers.ClearBit(Lamp_channel_matrix[floor-1][button])
         }
 }
 
@@ -84,11 +84,11 @@ func Elev_set_stop_lamp(value int){
 
 func Elev_init(){
     // Zero all floor button lamps
-    for i := 0; i < N_FLOORS; i++ {
-        if (i != 0){
+    for i := 1; i < N_FLOORS+1; i++ {
+        if (i != 1){
             Elev_set_button_lamp(BUTTON_CALL_DOWN, i, 0)
         }
-        if (i != N_FLOORS-1){
+        if (i != N_FLOORS){
             Elev_set_button_lamp(BUTTON_CALL_UP, i, 0)
         }
         Elev_set_button_lamp(BUTTON_COMMAND, i, 0)

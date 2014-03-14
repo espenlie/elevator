@@ -1,9 +1,11 @@
 package networking
 
+import "elevator"
+
 type Order struct {
-    Direction   string
+    Direction   elevator.Elev_button
     Floor       int
-    InOut       bool
+    InOut       int
 }
 
 type Status struct {

@@ -1,6 +1,7 @@
 package networking
 
 import (
+    "elevator"
     "fmt"
     "net"
     "time"
@@ -27,7 +28,7 @@ func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
 	return message
 }
 
-func GenerateMessage(dir string, floor int, inout bool, state string, lastfloor int, inhouse bool, source string) Networkmessage {
+func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state string, lastfloor int, inhouse bool, source string) Networkmessage {
 	s := Status{State: state, LastFloor: lastfloor, Inhouse: inhouse,Source:source}
 	o := Order{Direction:dir, Floor:floor, InOut:inout}
 	message := Networkmessage{Order:o,Status:s}
@@ -37,22 +38,22 @@ func GenerateMessage(dir string, floor int, inout bool, state string, lastfloor 
 func Orderdistr(generatedMsgs_c chan Networkmessage){
     for{
         if drivers.ReadBit(drivers.FLOOR_UP1){
-            generatedMsgs_c <- GenerateMessage("UP",1,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,1,1,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_UP2){
-            generatedMsgs_c <- GenerateMessage("UP",2,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,2,1,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_UP3){
-            generatedMsgs_c <- GenerateMessage("UP",3,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,3,1,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN2){
-            generatedMsgs_c <- GenerateMessage("DOWN",2,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,2,1,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN3){
-            generatedMsgs_c <- GenerateMessage("DOWN",3,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,3,1,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
-            generatedMsgs_c <- GenerateMessage("DOWN",4,false,"",-1,false,"")
+            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,4,1,"",-1,false,"")
         }
 	time.Sleep(5 * time.Millisecond)
     }
@@ -61,7 +62,6 @@ func Orderdistr(generatedMsgs_c chan Networkmessage){
 //Receives messages from a connections and adds it to a channel
 func Receiver(conn net.Conn, receivedMsgs_c chan Networkmessage){
     buf := make([]byte,1024)
-   
 //  var buf []byte
 //  conn.SetReadBuffer(1024)
     for {
@@ -109,6 +109,11 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 		}
         case in := <-receivedMsgs_c:
             fmt.Println(in)
+            if in.Order.Floor>0{
+//              orderlist=append(orderlist, in.Order)
+                elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
+
+            }
         case newConn := <- newConn_c:
             go Receiver(newConn, receivedMsgs_c)
         }
