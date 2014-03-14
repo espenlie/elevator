@@ -3,45 +3,75 @@ package networking
 import (
     "fmt"
     "net"
-    ."strings"
     "time"
     "drivers"
+    "encoding/json"
+    "bytes"
 )
+func PackNetworkMessage(message Networkmessage) []byte {
+//  send := make([]byte,1024)
+	send, err := json.Marshal(message)
+	if err != nil {
+		fmt.Println("Could not pack message: ",err.Error())
+	}
+	return send
+}
 
-func Orderdistr(generatedMsgs_c chan string){
+func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
+	var message Networkmessage
+    trimed := bytes.Trim(pack, "\x00")
+	err := json.Unmarshal(trimed[:bit], &message)
+	if err != nil {
+		fmt.Println("Could not unpack message: ", err.Error())
+	}
+	return message
+}
+
+func GenerateMessage(dir string, floor int, inout bool, state string, lastfloor int, inhouse bool, source string) Networkmessage {
+	s := Status{State: state, LastFloor: lastfloor, Inhouse: inhouse,Source:source}
+	o := Order{Direction:dir, Floor:floor, InOut:inout}
+	message := Networkmessage{Order:o,Status:s}
+	return message
+}
+
+func Orderdistr(generatedMsgs_c chan Networkmessage){
     for{
         if drivers.ReadBit(drivers.FLOOR_UP1){
-            generatedMsgs_c <- "Order_UP_0"+"EOL"
+            generatedMsgs_c <- GenerateMessage("UP",1,false,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_UP2){
-            generatedMsgs_c <- "Order_UP_1"+"EOL"
+            generatedMsgs_c <- GenerateMessage("UP",2,false,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_UP3){
-            generatedMsgs_c <- "Order_UP_2"+"EOL"
+            generatedMsgs_c <- GenerateMessage("UP",3,false,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN2){
-            generatedMsgs_c <- "Order_DOWN_1"+"EOL"
+            generatedMsgs_c <- GenerateMessage("DOWN",2,false,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN3){
-            generatedMsgs_c <- "Order_DOWN_2"+"EOL"
+            generatedMsgs_c <- GenerateMessage("DOWN",3,false,"",-1,false,"")
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
-            generatedMsgs_c <- "Order_DOWN_3"+"EOL"
+            generatedMsgs_c <- GenerateMessage("DOWN",4,false,"",-1,false,"")
         }
 	time.Sleep(5 * time.Millisecond)
     }
 }
 
 //Receives messages from a connections and adds it to a channel
-func Receiver(conn net.Conn, receivedMsgs_c chan string){
-    var buf [1024]byte
+func Receiver(conn net.Conn, receivedMsgs_c chan Networkmessage){
+    buf := make([]byte,1024)
+   
+//  var buf []byte
+//  conn.SetReadBuffer(1024)
     for {
-        _, err := conn.Read(buf[0:])
+        bit, err := conn.Read(buf[0:])
         if err != nil {
             fmt.Println(err)
             return
         }
-        receivedMsgs_c <- Split(string(buf[0:]), "EOL")[0]
+        unpacked := UnpackNetworkMessage(buf,bit)
+        receivedMsgs_c <- unpacked
     }
 }
 
@@ -57,41 +87,34 @@ func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
 }
 
 
-func Networking(newConn_c chan net.Conn, generatedMsgs_c chan string, receivedMsgs_c chan string, dialConn_c chan net.Conn) {
+func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, receivedMsgs_c chan Networkmessage, dialConn_c chan net.Conn) {
     var newConn net.Conn
-    var msg []string
+//  var msg []Networkmessage
 	connMap := make(map[string]net.Conn)
     for{
         select {
         case newConn = <- dialConn_c:
 			connMap[newConn.LocalAddr().String()] = newConn
 		case sendMsg := <- generatedMsgs_c:{
+            packed := make([]byte,1024)
+//          fmt.Println(sendMsg)
+            packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
-				connection.Write(append([]byte(sendMsg), []byte{0}...))
+				connection.Write(packed)
+//              if err != nil {
+//                  fmt.Println("Error writing: ", err.Error())
+//              }
+//              fmt.Println(mess)
 			}
 		}
         case in := <-receivedMsgs_c:
             fmt.Println(in)
-            msg = Split(in,"_")
-            if msg[0]=="Order"{
-                if msg[1]=="UP" && msg[2]=="0"{
-                    drivers.SetBit(drivers.LIGHT_UP1)}
-                if msg[1]=="UP" && msg[2]=="1"{
-                    drivers.SetBit(drivers.LIGHT_UP2)}
-                if msg[1]=="UP" && msg[2]=="2"{
-                    drivers.SetBit(drivers.LIGHT_UP3)}
-                if msg[1]=="DOWN" && msg[2]=="1"{
-                    drivers.SetBit(drivers.LIGHT_DOWN2)}
-                if msg[1]=="DOWN" && msg[2]=="2"{
-                    drivers.SetBit(drivers.LIGHT_DOWN3)}
-                if msg[1]=="DOWN" && msg[2]=="3"{
-                    drivers.SetBit(drivers.LIGHT_DOWN4)}
-            }
-            case newConn := <- newConn_c:
-			    go Receiver(newConn, receivedMsgs_c)
-            }
+        case newConn := <- newConn_c:
+            go Receiver(newConn, receivedMsgs_c)
         }
+
     }
+}
 
 //Dials all elevators in the map
 func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){

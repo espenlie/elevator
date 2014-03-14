@@ -9,6 +9,7 @@ type Order struct {
 type Status struct {
     State       string
     LastFloor   int
+    Inhouse     bool
     Source      string
 }
 

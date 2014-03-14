@@ -3,7 +3,7 @@ import (
     ."fmt"
     ."net"
 //  ."strings"
-	"strconv"
+//	"strconv"
     "time"
     "drivers"
 	"misc"
@@ -11,7 +11,28 @@ import (
 	"networking"
 )
 
+var orderlist = make([]networking.Order,0)
+var statuslist = make(map[string]networking.Status)
+
+func takeorder(orderlist []networking.Order, statuslist map[string]networking.Status, myip string)int{
+	Println(orderlist, statuslist, myip)
+//	for order := orderlist.Front(); order != nil; order = order.Next() {
+//		for elevator := statuslist.Front(); elevator != nil; elevator = elevator.Next() {
+//			if elevator.State=="IDLE" && elevator.LastFloor==order.Floor && elevator.Source=myip{
+//				return order.Floor
+//			}
+//			if elevator.State=="UP" && elevator.LastFloor==order.Floor-1 && elevator.Source=myip{
+//				return order.Floor
+//			}
+//		}
+//	}
+	return -1
+}
+
 func main() {
+
+	var myip string
+	myip = "yooo"
 	drivers.IoInit()
 	elevator.Elev_init()
 	go elevator.FloorUpdater()
@@ -28,13 +49,14 @@ func main() {
 
     listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
     listenConn, _ := ListenTCP("tcp", listenAddr)
-    receivedMsgs_c  := make(chan string)
-    generatedMsgs_c  := make(chan string)
+    receivedMsgs_c  := make(chan networking.Networkmessage)
+    generatedMsgs_c  := make(chan networking.Networkmessage)
     newConn_c       := make(chan Conn, 10)
     dialConn_c      := make(chan Conn, 10)
 
     go networking.Networking(newConn_c, generatedMsgs_c, receivedMsgs_c, dialConn_c)
-
+//	statuslist[myip]=networking.Status{State:"UP",LastFloor:1,Source:myip}
+	takeorder(orderlist, statuslist, myip)
 	go networking.Listener(listenConn, newConn_c)
 	go networking.Dialer(connections, conf.Default_Dial_Port, dialConn_c)
 	go networking.Orderdistr(generatedMsgs_c)
@@ -81,7 +103,7 @@ func main() {
 				time.Sleep(100 * time.Millisecond)
 				status.State = state
 				status.LastFloor = floor
-        		generatedMsgs_c <- status.Source+"_"+status.State+"_"+strconv.Itoa(status.LastFloor)+"EOL"
+//      		generatedMsgs_c <- status.Source+"_"+status.State+"_"+strconv.Itoa(status.LastFloor)+"EOL"
 				fallthrough;
 			}
     		case "UP":{ 

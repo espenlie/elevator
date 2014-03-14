@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-	"networking"
-	"fmt"
+//	"networking"
 )
 
 type Elevator struct {
@@ -32,19 +31,3 @@ func LoadConfig(filename string) Config {
 	return config
 }
 
-func PackNetworkMessage(message networking.Networkmessage) []byte {
-	pack, err := json.Marshal(message)
-	if err != nil {
-		fmt.Println("Could not pack message: ",err.Error())
-	}
-	return pack
-}
-
-func UnpackNetworkMessage(pack []byte) networking.Networkmessage{
-	var message networking.Networkmessage
-	err := json.Unmarshal(pack, &message)
-	if err != nil {
-		fmt.Println("Could not unpack message: ", err.Error())
-	}
-	return message
-}
