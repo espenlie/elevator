@@ -9,6 +9,10 @@ import (
     "encoding/json"
     "bytes"
 )
+var orderlist = make([]Order,0)
+var statuslist = make(map[string]Status)
+
+
 func PackNetworkMessage(message Networkmessage) []byte {
 //  send := make([]byte,1024)
 	send, err := json.Marshal(message)
@@ -35,27 +39,38 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 	return message
 }
 
+func neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
+
+    for _, b := range orderlist {
+        if b == order {
+            return false
+        }
+    }
+    generatedMsgs_c <- GenerateMessage(order.Direction,order.Floor,order.InOut,"",-1,false,"")
+    return true
+}
+
 func Orderdistr(generatedMsgs_c chan Networkmessage){
     for{
         if drivers.ReadBit(drivers.FLOOR_UP1){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,1,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:1, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_UP2){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,2,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:2, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_UP3){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,3,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:3, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN2){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,2,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:2, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN3){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,3,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:3, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
-            generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_DOWN,4,1,"",-1,false,"")
+            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
         }
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(1 * time.Millisecond)
     }
 }
 
@@ -110,8 +125,10 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
         case in := <-receivedMsgs_c:
             fmt.Println(in)
             if in.Order.Floor>0{
-//              orderlist=append(orderlist, in.Order)
+                orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
+                fmt.Println(orderlist)
+
 
             }
         case newConn := <- newConn_c:

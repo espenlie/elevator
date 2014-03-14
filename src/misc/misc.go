@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"log"
-//	"networking"
+	"strings"
+	"os/exec"
+	"fmt"
 )
 
 type Elevator struct {
@@ -31,3 +33,13 @@ func LoadConfig(filename string) Config {
 	return config
 }
 
+func GetLocalIP() string {
+    oneliner := "ifconfig | grep 129.241.187 | cut -d':' -f2 | cut -d' ' -f1"
+    cmd := exec.Command("bash", "-c", oneliner)
+    out, err := cmd.Output()
+    if err != nil {
+        fmt.Println(err)
+    }
+    ip := strings.TrimSpace(string(out))
+    return ip
+}

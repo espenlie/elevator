@@ -10,10 +10,6 @@ import (
 	"elevator"
 	"networking"
 )
-
-var orderlist = make([]networking.Order,0)
-var statuslist = make(map[string]networking.Status)
-
 func takeorder(orderlist []networking.Order, statuslist map[string]networking.Status, myip string)int{
 	Println(orderlist, statuslist, myip)
 //	for order := orderlist.Front(); order != nil; order = order.Next() {
@@ -31,8 +27,8 @@ func takeorder(orderlist []networking.Order, statuslist map[string]networking.St
 
 func main() {
 
-	var myip string
-	myip = "yooo"
+//	var myip string
+//	myip = "yooo"
 	drivers.IoInit()
 	elevator.Elev_init()
 	go elevator.FloorUpdater()
@@ -56,7 +52,7 @@ func main() {
 
     go networking.Networking(newConn_c, generatedMsgs_c, receivedMsgs_c, dialConn_c)
 //	statuslist[myip]=networking.Status{State:"UP",LastFloor:1,Source:myip}
-	takeorder(orderlist, statuslist, myip)
+//	takeorder(orderlist, statuslist, myip)
 	go networking.Listener(listenConn, newConn_c)
 	go networking.Dialer(connections, conf.Default_Dial_Port, dialConn_c)
 	go networking.Orderdistr(generatedMsgs_c)
