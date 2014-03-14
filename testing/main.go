@@ -8,6 +8,7 @@ import (
 //  "misc"
 //  "elevator"
     "networking"
+    "misc"
 //  "encoding/json"
     )
 
@@ -25,9 +26,11 @@ type Status struct {
 
 func main() {
     var message networking.Networkmessage
-    message.Status=networking.Status{State: "be", LastFloor:1, Source: "hei"} 
-    message.Order
+    message.Status = networking.Status{State: "IDLE", LastFloor:1, Source: "127.0.0.1"} 
+    message.Order = networking.Order{Direction: "UP", Floor: 3, InOut: false}
     fmt.Println(message)
+    networkbyte := misc.PackNetworkMessage(message)
+    fmt.Println(networkbyte)
 }
 
 /*

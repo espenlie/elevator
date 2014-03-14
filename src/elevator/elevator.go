@@ -1,7 +1,7 @@
 package elevator
 
 import (
-    "fmt"
+//  "fmt"
     "time"
     "drivers"
 )
@@ -60,10 +60,6 @@ func FloorUpdater(){
 }
 
 func Elev_set_button_lamp(button elev_button, floor int, value int){
-    fmt.Println(button, floor, value)
-    fmt.Println(lamp_channel_matrix[floor][button])
-    fmt.Println(drivers.LIGHT_UP2)
-
     if (value == 1){
         drivers.SetBit(lamp_channel_matrix[floor][button])
     }else{

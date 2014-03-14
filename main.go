@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	drivers.IoInit()
 	elevator.Elev_init()
 	go elevator.FloorUpdater()
 
