@@ -12,14 +12,14 @@ import (
 )
 
 func main() {
-	drivers.IoInit()
-	go elevator.FloorUpdater() 
+	elevator.Elev_init()
+	go elevator.FloorUpdater()
 
 //	var conf misc.Config
 	conf := misc.LoadConfig("/home/student/LL/elevator/config/conf.json")
-	
+
     connections         := make(map[string]bool)
-	
+
 	for _,elevator :=range conf.Elevators{
 //		Println(elevator.Address)
 		connections[elevator.Address]=false
@@ -33,7 +33,7 @@ func main() {
     dialConn_c      := make(chan Conn, 10)
 
     go networking.Networking(newConn_c, generatedMsgs_c, receivedMsgs_c, dialConn_c)
-	
+
 	go networking.Listener(listenConn, newConn_c)
 	go networking.Dialer(connections, conf.Default_Dial_Port, dialConn_c)
 	go networking.Orderdistr(generatedMsgs_c)
@@ -60,7 +60,7 @@ func main() {
 	for{
 //		Println("State: ", state)
 		switch state {
-    		case "INIT":{ 
+			case "INIT":{
 				state="IDLE"
 				fallthrough;
 				}

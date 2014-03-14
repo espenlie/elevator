@@ -1,14 +1,14 @@
 package main
 
 import (
-    "os/exec"
+//  "os/exec"
     "fmt"
-//  "fmt"
 //  "drivers"
 //  "net"
 //  "misc"
 //  "elevator"
-    "encoding/json"
+    "networking"
+//  "encoding/json"
     )
 
 type Order struct {
@@ -22,6 +22,15 @@ type Status struct {
     Source      string
 }
 
+
+func main() {
+    var message networking.Networkmessage
+    message.Status=networking.Status{State: "be", LastFloor:1, Source: "hei"} 
+    message.Order
+    fmt.Println(message)
+}
+
+/*
 func getIP() {
     cmd, err := exec.Command("ifconfig | grep 'inet addr:'").Output()
     if err != nil {
@@ -30,8 +39,9 @@ func getIP() {
 //  out, err := cmd.StdoutPipe()
     fmt.Printf("%s",cmd)
 }
+
+
 func main() {
-//  getIP()
     stat := &Status{State:      "UP",
                     LastFloor:  2,
                     Source:     "Ip"}
@@ -47,3 +57,4 @@ func main() {
     }
     fmt.Println(test)
 }
+*/

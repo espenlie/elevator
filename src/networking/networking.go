@@ -28,10 +28,11 @@ func Orderdistr(generatedMsgs_c chan string){
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
             generatedMsgs_c <- "Order_DOWN_3"+"EOL"
         }
-    	time.Sleep(5 * time.Millisecond)
+	time.Sleep(5 * time.Millisecond)
     }
 }
 
+//Receives messages from a connections and adds it to a channel
 func Receiver(conn net.Conn, receivedMsgs_c chan string){
     var buf [1024]byte
     for {
@@ -44,6 +45,7 @@ func Receiver(conn net.Conn, receivedMsgs_c chan string){
     }
 }
 
+//Listens for new connections. If any it accepts it and adds it to a connection channel
 func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
     for {
         newConn, err := conn.Accept()
@@ -53,6 +55,7 @@ func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
         newConn_c <- newConn
     }
 }
+
 
 func Networking(newConn_c chan net.Conn, generatedMsgs_c chan string, receivedMsgs_c chan string, dialConn_c chan net.Conn) {
     var newConn net.Conn
@@ -90,6 +93,7 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan string, receivedMs
         }
     }
 
+//Dials all elevators in the map
 func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
 	for{
 		for elevator,status := range elevators{
