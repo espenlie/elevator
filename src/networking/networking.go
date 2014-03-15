@@ -37,6 +37,7 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 }
 
 func SendStatuslist(generatedMsgs_c chan Networkmessage) {
+    fmt.Println(statuslist)
     for _, status:= range statuslist {
         fmt.Println("JA")
         generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
@@ -135,17 +136,17 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 			}
 		}
         case in := <-receivedMsgs_c:
+            fmt.Println(in)
             if in.Order.Floor>0{
                 orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
                 fmt.Println(orderlist)
             }
             if in.Status.Source != "" {
-                if in.Status.State == "INIT" {
-                    SendStatuslist(generatedMsgs_c)
-                }
                 statuslist[in.Status.Source] = in.Status
-                fmt.Println(statuslist)
+//              if in.Status.State == "INIT" {
+//                  SendStatuslist(generatedMsgs_c)
+//              }
             }
         case newConn := <- newConn_c:
             go Receiver(newConn, receivedMsgs_c)
