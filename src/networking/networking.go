@@ -94,7 +94,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage){
 }
 
 //Receives messages from a connections and adds it to a channel
-func Receiver(conn net.TCPConn, receivedMsgs_c chan Networkmessage){
+func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
@@ -108,7 +108,7 @@ func Receiver(conn net.TCPConn, receivedMsgs_c chan Networkmessage){
 }
 
 //Listens for new connections. If any it accepts it and adds it to a connection channel
-func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
+func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn){
     for {
         newConn, err := conn.AcceptTCP()
         if err != nil {
@@ -119,13 +119,12 @@ func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
 }
 
 
-func Networking(newConn_c chan net.TCPConn, generatedMsgs_c chan Networkmessage, receivedMsgs_c chan Networkmessage, dialConn_c chan net.TCPConn) {
-    var newConn net.TCPConn
+func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage, receivedMsgs_c chan Networkmessage, dialConn_c chan *net.TCPConn) {
 //  var msg []Networkmessage
-	connMap := make(map[string]net.TCPConn)
+	connMap := make(map[string]*net.TCPConn)
     for {
         select {
-        case newConn = <- dialConn_c:
+        case newConn := <- dialConn_c:
 			connMap[newConn.LocalAddr().String()] = newConn
 		case sendMsg := <- generatedMsgs_c:{
             packed := make([]byte,1024)
@@ -160,10 +159,14 @@ func Networking(newConn_c chan net.TCPConn, generatedMsgs_c chan Networkmessage,
 }
 
 //Dials all elevators in the map
-func Dialer(elevators map[string]bool, port int, dialconn_c chan net.TCPConn){
+func Dialer(elevators map[string]bool, port string, dialconn_c chan *net.TCPConn){
     myip := misc.GetLocalIP()
-    local := net.TCPAddr{IP:[]byte("127.0.0.1"),Port:port}
-    dialConn, err := net.DialTCP("tcp4",nil, *local)
+//  local := net.TCPAddr{IP:[]byte("127.0.0.1"),Port:port}
+    local, err := net.ResolveTCPAddr("tcp","localhost"+port)
+    if err != nil {
+        fmt.Println(err)
+    }
+    dialConn, err := net.DialTCP("tcp4",nil, local)
     elevators[myip]=true
     if err != nil {
         fmt.Println(err)
@@ -172,7 +175,8 @@ func Dialer(elevators map[string]bool, port int, dialconn_c chan net.TCPConn){
 	for{
 		for elevator,status := range elevators{
 			if !status {
-				dialConn, err := net.DialTCP("tcp4", nil, elevator+port)
+                raddr, err := net.ResolveTCPAddr("tcp",elevator+port)
+				dialConn, err := net.DialTCP("tcp4", nil, raddr)
 				if err != nil {
 					fmt.Println(err)
 				}else{

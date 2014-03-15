@@ -108,8 +108,8 @@ func main() {
     listenConn, _ := ListenTCP("tcp", listenAddr)
     receivedMsgs_c  := make(chan networking.Networkmessage)
     generatedMsgs_c  := make(chan networking.Networkmessage)
-    newConn_c       := make(chan Conn, 10)
-    dialConn_c      := make(chan Conn, 10)
+    newConn_c       := make(chan *TCPConn, 10)
+    dialConn_c      := make(chan *TCPConn, 10)
 
     go networking.Networking(newConn_c, generatedMsgs_c, receivedMsgs_c, dialConn_c)
 //	statuslist[myip]=networking.Status{State:"UP",LastFloor:1,Source:myip}
