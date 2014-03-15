@@ -39,6 +39,7 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 func SendStatuslist(generatedMsgs_c chan Networkmessage) {
     for _, status:= range statuslist {
         generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
+        time.Sleep(100 * time.Millisecond)
     }
 }
 
