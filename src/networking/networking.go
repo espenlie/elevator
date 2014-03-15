@@ -36,8 +36,18 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 	return message
 }
 
-func neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
+func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
+    for key, _ := range statuslist {
+        if statuslist[key] == status {
+            return false
+        }
+    }
+    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
+    return true
+}
 
+
+func neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
     for _, b := range orderlist {
         if b == order {
             return false
@@ -109,11 +119,11 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
             packed := make([]byte,1024)
             packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
-                connection.SetWriteDeadline(time.Now().Add(2 * time.Second))
-				_, err := connection.Write(packed)
-                if err != nil {
-                    fmt.Println("KUK komputeren")
-                }
+//              connection.SetLinger(100 * time.Millisecond)
+				connection.Write(packed)
+//              if err != nil {
+//                  fmt.Println("KUK komputeren")
+//              }
 			}
 		}
         case in := <-receivedMsgs_c:
@@ -122,6 +132,9 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
                 orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
                 fmt.Println(orderlist)
+            }
+            if in.Status.Source != "" {
+                statuslist[in.Status.Source] = in.Status
             }
         case newConn := <- newConn_c:
             go Receiver(newConn, receivedMsgs_c)

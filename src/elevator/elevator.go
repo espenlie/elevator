@@ -48,7 +48,7 @@ func Elev_get_floor_sensor_signal()int{
         return 2
     }else if drivers.ReadBit(drivers.SENSOR3){
         return 3
-    }else if drivers.ReadBit(drivers.SENSOR3){
+    }else if drivers.ReadBit(drivers.SENSOR4){
         return 4
     }else{
         return -1
@@ -67,7 +67,7 @@ func FloorUpdater(){
 }
 
 func Current_floor()int{
-    floor :=0
+    floor :=1
     if drivers.ReadBit(drivers.FLOOR_IND2){
         floor=floor+1}
     if drivers.ReadBit(drivers.FLOOR_IND1){

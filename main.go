@@ -94,7 +94,8 @@ func main() {
 			default:{
 				mystatus.State=state
 				mystatus.LastFloor=elevator.Current_floor()
-//				generatedMsgs_c <- 
+				networking.NewStatus(mystatus, generatedMsgs_c)
+//				generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 			}
 		}
 	}
