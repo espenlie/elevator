@@ -12,6 +12,12 @@ import (
 var orderlist = make([]Order,0)
 var statuslist = make(map[string]Status)
 
+func GetStatusList() map[string]Status {
+    return statuslist
+}
+func GetOrderList() []Order {
+    return orderlist
+}
 func PackNetworkMessage(message Networkmessage) []byte {
 	send, err := json.Marshal(message)
 	if err != nil {
@@ -88,7 +94,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage){
 }
 
 //Receives messages from a connections and adds it to a channel
-func Receiver(conn net.Conn, receivedMsgs_c chan Networkmessage){
+func Receiver(conn net.TCPConn, receivedMsgs_c chan Networkmessage){
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
@@ -104,7 +110,7 @@ func Receiver(conn net.Conn, receivedMsgs_c chan Networkmessage){
 //Listens for new connections. If any it accepts it and adds it to a connection channel
 func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
     for {
-        newConn, err := conn.Accept()
+        newConn, err := conn.AcceptTCP()
         if err != nil {
             fmt.Println(err)
         }
@@ -113,11 +119,11 @@ func Listener(conn *net.TCPListener, newConn_c chan net.Conn){
 }
 
 
-func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, receivedMsgs_c chan Networkmessage, dialConn_c chan net.Conn) {
-    var newConn net.Conn
+func Networking(newConn_c chan net.TCPConn, generatedMsgs_c chan Networkmessage, receivedMsgs_c chan Networkmessage, dialConn_c chan net.TCPConn) {
+    var newConn net.TCPConn
 //  var msg []Networkmessage
-	connMap := make(map[string]net.Conn)
-    for{
+	connMap := make(map[string]net.TCPConn)
+    for {
         select {
         case newConn = <- dialConn_c:
 			connMap[newConn.LocalAddr().String()] = newConn
@@ -125,11 +131,11 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
             packed := make([]byte,1024)
             packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
-//              connection.SetLinger(100 * time.Millisecond)
+                err := connection.SetLinger(1)
 				connection.Write(packed)
-//              if err != nil {
-//                  fmt.Println("KUK komputeren")
-//              }
+                if err != nil {
+                    fmt.Println("KUK komputeren")
+                }
 			}
 		}
         case in := <-receivedMsgs_c:
@@ -154,9 +160,9 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 }
 
 //Dials all elevators in the map
-func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
+func Dialer(elevators map[string]bool, port string, dialconn_c chan net.TCPConn){
     myip := misc.GetLocalIP()
-    dialConn, err := net.Dial("tcp", "localhost"+port)
+    dialConn, err := net.DialTCP("tcp4",nil, "localhost"+port)
     elevators[myip]=true
     if err != nil {
         fmt.Println(err)
@@ -165,7 +171,7 @@ func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
 	for{
 		for elevator,status := range elevators{
 			if !status {
-				dialConn, err := net.Dial("tcp", elevator+port)
+				dialConn, err := net.DialTCP("tcp4", nil, elevator+port)
 				if err != nil {
 					fmt.Println(err)
 				}else{

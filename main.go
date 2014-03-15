@@ -10,19 +10,49 @@ import (
 	"networking"
 	"elevator"
 )
-func takeorder(orderlist []networking.Order, statuslist map[string]networking.Status, myip string)int{
-	Println(orderlist, statuslist, myip)
-//	for order := orderlist.Front(); order != nil; order = order.Next() {
-//		for elevator := statuslist.Front(); elevator != nil; elevator = elevator.Next() {
-//			if elevator.State=="IDLE" && elevator.LastFloor==order.Floor && elevator.Source=myip{
-//				return order.Floor
-//			}
-//			if elevator.State=="UP" && elevator.LastFloor==order.Floor-1 && elevator.Source=myip{
-//				return order.Floor
-//			}
-//		}
-//	}
-	return -1
+func nextorder(myip string)int{
+	statuslist := networking.GetStatusList()
+	orderlist := networking.GetOrderList()
+
+	for _,order := range orderlist{
+		for _,elev := range statuslist{
+			if elev.State=="IDLE" && elev.LastFloor==order.Floor && elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-1) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+1))&& elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+1 || elev.LastFloor==order.Floor-1) && elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-2) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+2))&& elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+2 || elev.LastFloor==order.Floor-2) && elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-3) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+3))&& elev.Source==myip{
+				return order.Floor
+			}
+		}
+		for _,elev := range statuslist{
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+3 || elev.LastFloor==order.Floor-3) && elev.Source==myip{
+				return order.Floor
+			}
+		}
+
+	}
+	return 0
 }
 
 func main() {
@@ -84,6 +114,7 @@ func main() {
 				fallthrough;
 				}
 			case "IDLE":{
+				Println(nextorder(myip))
 				time.Sleep(10 * time.Millisecond)
 //				status.State = state
 //				status.LastFloor = floor
