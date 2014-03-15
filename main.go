@@ -156,7 +156,7 @@ func main() {
 					state="DOOR_OPEN"
 				}
 
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
@@ -171,7 +171,7 @@ func main() {
 					state="IDLE"
 				}
 
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
@@ -185,12 +185,12 @@ func main() {
 				}else{
 					state="IDLE"
 				}
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
 				taken.InOut=0
-				time.Sleep(10 * time.Millisecond)
+				time.Sleep(50 * time.Millisecond)
 				networking.Neworder(generatedMsgs_c, taken)
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
