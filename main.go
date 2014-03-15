@@ -66,6 +66,7 @@ func main() {
 	mystatus.Source=myip
 	mystatus.State=state
 	mystatus.LastFloor=elevator.Current_floor()
+	time.Sleep(2000 * time.Millisecond)
 	for{
 //		Println("State: ", state)
 		switch state {
