@@ -37,11 +37,8 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 }
 
 func SendStatuslist(generatedMsgs_c chan Networkmessage) {
-    var mystatus Status
     myip := misc.GetLocalIP()
-    mystatus.Source=myip
-    mystatus.State="IDLE"
-    mystatus.LastFloor=elevator.Current_floor()
+    mystatus := statuslist[myip]
     generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 }
 
