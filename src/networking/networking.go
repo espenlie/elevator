@@ -19,6 +19,7 @@ func GetOrderList() []Order {
     return orderlist
 }
 func PackNetworkMessage(message Networkmessage) []byte {
+    fmt.Println(message)
 	send, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Could not pack message: ",err.Error())
@@ -59,7 +60,7 @@ func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
 }
 
 
-func neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
+func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
     for _, b := range orderlist {
         if b == order {
             return false
@@ -72,22 +73,22 @@ func neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
 func Orderdistr(generatedMsgs_c chan Networkmessage){
     for{
         if drivers.ReadBit(drivers.FLOOR_UP1){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:1, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:1, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_UP2){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:2, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:2, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_UP3){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:3, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:3, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN2){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:2, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:2, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN3){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:3, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:3, InOut:1})
         }
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
-            neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
+            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
         }
 	time.Sleep(1 * time.Millisecond)
     }
@@ -125,12 +126,20 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
     for {
         select {
         case newConn := <- dialConn_c:
+            newConn.SetKeepAlive(true)
+            err := newConn.SetKeepAlivePeriod(100 * time.Millisecond)
+            if err != nil {
+                fmt.Println(err)
+                newConn.Close()
+            }
+            newConn.SetLinger(1)
 			connMap[newConn.LocalAddr().String()] = newConn
 		case sendMsg := <- generatedMsgs_c:{
             packed := make([]byte,1024)
             packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
-                err := connection.SetLinger(1)
+//              err := connection.SetLinger(1)
+                err := connection.SetWriteDeadline(time.Now().Add(1000 * time.Millisecond))
 				connection.Write(packed)
                 if err != nil {
                     fmt.Println("KUK komputeren")
@@ -138,11 +147,21 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
 			}
 		}
         case in := <-receivedMsgs_c:
-            fmt.Println(in)
+//          fmt.Println(in)
             if in.Order.Floor>0{
-                orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
-                fmt.Println(orderlist)
+                if in.Order.InOut==0{
+                    in.Order.InOut=1
+                    for i, b := range orderlist {
+                        if b == in.Order {
+                            orderlist[i], orderlist  = orderlist[len(orderlist)-1], orderlist[:len(orderlist)-1]
+                        }
+                    }
+                }else{
+
+                    orderlist=append(orderlist, in.Order)
+                    fmt.Println(orderlist)
+                }
             }
             if in.Status.Source != "" {
 //              fmt.Println(in.Status)
@@ -166,7 +185,11 @@ func Dialer(elevators map[string]bool, port string, dialconn_c chan *net.TCPConn
     if err != nil {
         fmt.Println(err)
     }
-    dialConn, err := net.DialTCP("tcp4",nil, local)
+    local2, err := net.ResolveTCPAddr("tcp","localhost"+":1337")
+    if err != nil {
+        fmt.Println(err)
+    }
+    dialConn, err := net.DialTCP("tcp4",local2, local)
     elevators[myip]=true
     if err != nil {
         fmt.Println(err)

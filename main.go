@@ -10,7 +10,7 @@ import (
 	"networking"
 	"elevator"
 )
-func nextorder(myip string)int{
+func nextorder(myip string)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
 	for _,order := range orderlist{
@@ -18,7 +18,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if elev.State=="IDLE" && elev.LastFloor==order.Floor && elev.Inhouse==false{
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -28,7 +28,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if ((elev.State=="UP" && elev.LastFloor==order.Floor-1) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+1)){
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -38,7 +38,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-1 || elev.LastFloor==order.Floor+1) && elev.Inhouse==false{
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -48,7 +48,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if ((elev.State=="UP" && elev.LastFloor==order.Floor-2) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+2)){
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -58,7 +58,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-2 || elev.LastFloor==order.Floor+2) && elev.Inhouse==false{
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -68,7 +68,7 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if ((elev.State=="UP" && elev.LastFloor==order.Floor-3) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+3)){
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
@@ -78,14 +78,14 @@ func nextorder(myip string)int{
 		for _,elev := range statuslist{
 			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-3 || elev.LastFloor==order.Floor+3) && elev.Inhouse==false{
 				if elev.Source==myip{
-					return order.Floor
+					return order
 				}else{
 					taken = true
 				}
 			}
 		}
 	}
-	return 0
+	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
 func main() {
@@ -125,6 +125,7 @@ func main() {
 
 	state := "INIT"
 //	var floor int
+	var taken networking.Order
 	var mystatus networking.Status
 	mystatus.Source=myip
 	mystatus.State=state
@@ -136,7 +137,6 @@ func main() {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
-//				Println(mystatus)
 				time.Sleep(10 * time.Millisecond)
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
@@ -144,33 +144,67 @@ func main() {
 					elevator.Elev_set_speed(0)
 					state="IDLE"
 				}
-				fallthrough;
-				}
+			}
 			case "IDLE":{
-				Println(nextorder(myip))
+//				Println(nextorder(myip))
+				if nextorder(myip).Floor>elevator.Current_floor(){
+					state="UP"
+				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
+					state="DOWN"
+				}else if nextorder(myip).Floor==elevator.Current_floor(){
+					taken =nextorder(myip)
+					state="DOOR_OPEN"
+				}
+
 				time.Sleep(10 * time.Millisecond)
-//				status.State = state
-//				status.LastFloor = floor
-				fallthrough;
 			}
 			case "UP":{
-				fallthrough;
+				elevator.Elev_set_speed(300)
+				if nextorder(myip).Floor>elevator.Current_floor(){
+					state="UP"
+				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
+					state="DOWN"
+				}else if nextorder(myip).Floor==elevator.Current_floor(){
+					taken =nextorder(myip)
+					state="DOOR_OPEN"
+				}
+
+				time.Sleep(10 * time.Millisecond)
 			}
 			case "DOWN":{
-				fallthrough;
+				elevator.Elev_set_speed(-300)
+				if nextorder(myip).Floor>elevator.Current_floor(){
+					state="UP"
+				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
+					state="DOWN"
+				}else if nextorder(myip).Floor==elevator.Current_floor(){
+					taken =nextorder(myip)
+					state="DOOR_OPEN"
+				}
+				time.Sleep(10 * time.Millisecond)
 			}
 			case "DOOR_OPEN":{
-				fallthrough;
+				elevator.Elev_set_door_open_lamp(1)
+				taken.InOut=0
+				time.Sleep(10 * time.Millisecond)
+				networking.Neworder(generatedMsgs_c, taken)
+				elevator.Elev_set_speed(0)
+				time.Sleep(3000 * time.Millisecond)
+				elevator.Elev_set_door_open_lamp(0)
+				state="IDLE"
 			}
 			case "ERROR":{
-				fallthrough;
-			}
-			default:{
-				mystatus.State=state
-				mystatus.LastFloor=elevator.Current_floor()
-				networking.NewStatus(mystatus, generatedMsgs_c)
-//				generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 			}
 		}
+//		statuslist := networking.GetStatusList()
+//		orderlist := networking.GetOrderList()
+//		Println(statuslist)
+//		Println(orderlist)
+//		Println(state)
+//		Println(nextorder(myip))
+		mystatus.State=state
+		mystatus.LastFloor=elevator.Current_floor()
+		networking.NewStatus(mystatus, generatedMsgs_c)
+//		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 	}
 }
