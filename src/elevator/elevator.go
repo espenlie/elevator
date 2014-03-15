@@ -41,22 +41,38 @@ func Elev_set_floor_indicator(floor int){
         drivers.ClearBit(drivers.FLOOR_IND2)}
 }
 
+func Elev_get_floor_sensor_signal()int{
+    if drivers.ReadBit(drivers.SENSOR1){
+        return 1
+    }else if drivers.ReadBit(drivers.SENSOR2){
+        return 2
+    }else if drivers.ReadBit(drivers.SENSOR3){
+        return 3
+    }else if drivers.ReadBit(drivers.SENSOR3){
+        return 4
+    }else{
+        return -1
+    }
+}
+
+
 func FloorUpdater(){
     for{
-        if drivers.ReadBit(drivers.SENSOR1){
-            Elev_set_floor_indicator(1)
-        }
-        if drivers.ReadBit(drivers.SENSOR2){
-            Elev_set_floor_indicator(2)
-        }
-        if drivers.ReadBit(drivers.SENSOR3){
-            Elev_set_floor_indicator(3)
-        }
-        if drivers.ReadBit(drivers.SENSOR4){
-            Elev_set_floor_indicator(4)
+        floor := Elev_get_floor_sensor_signal()
+        if (floor!=-1){
+            Elev_set_floor_indicator(floor)
         }
         time.Sleep(100 * time.Millisecond)
     }
+}
+
+func Current_floor()int{
+    floor :=0
+    if drivers.ReadBit(drivers.FLOOR_IND2){
+        floor=floor+1}
+    if drivers.ReadBit(drivers.FLOOR_IND1){
+        floor=floor+2}
+    return floor
 }
 
 func Elev_set_button_lamp(button Elev_button, floor int, value int){

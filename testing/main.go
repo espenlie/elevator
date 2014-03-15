@@ -1,16 +1,8 @@
 package main
 
 import (
-//  "os/exec"
     "fmt"
-//  "strings"
-//  "drivers"
-//  "net"
-//  "misc"
-//  "elevator"
-//  "networking"
     "misc"
-//  "encoding/json"
     )
 /*
 func main() {

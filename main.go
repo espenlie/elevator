@@ -7,8 +7,8 @@ import (
     "time"
     "drivers"
 	"misc"
-	"elevator"
 	"networking"
+	"elevator"
 )
 func takeorder(orderlist []networking.Order, statuslist map[string]networking.Status, myip string)int{
 	Println(orderlist, statuslist, myip)
@@ -27,10 +27,8 @@ func takeorder(orderlist []networking.Order, statuslist map[string]networking.St
 
 func main() {
 
-//	var myip string
-//	myip = "yooo"
-	drivers.IoInit()
-	elevator.Elev_init()
+	myip := misc.GetLocalIP()
+	Println(myip)
 	go elevator.FloorUpdater()
 
 //	var conf misc.Config
@@ -63,64 +61,41 @@ func main() {
 //      }
 
 	state := "INIT"
-	var floor int
-	var status networking.Status
-	interfaces, _ := Interfaces()
-		for _, inter := range interfaces {
-			if inter.Name=="rename2"{
-				addrs, _ := inter.Addrs()
-				for _, addr := range addrs {
-					status.Source=addr.String()
-				}
-			}
-		}
-	Println(status.Source)
-
+//	var floor int
+	var mystatus networking.Status
+	mystatus.Source=myip
 	for{
 //		Println("State: ", state)
 		switch state {
 			case "INIT":{
+				drivers.IoInit()
+				elevator.Elev_init()
 				state="IDLE"
 				fallthrough;
 				}
-			case "IDLE":{ 
-				if drivers.ReadBit(drivers.SENSOR1){
-					floor=1
-				}
-				if drivers.ReadBit(drivers.SENSOR2){
-					floor=2
-				}
-				if drivers.ReadBit(drivers.SENSOR3){
-					floor=3
-				}
-				if drivers.ReadBit(drivers.SENSOR4){
-					floor=4
-				}
+			case "IDLE":{
 				time.Sleep(100 * time.Millisecond)
-				status.State = state
-				status.LastFloor = floor
-//      		generatedMsgs_c <- status.Source+"_"+status.State+"_"+strconv.Itoa(status.LastFloor)+"EOL"
+//				status.State = state
+//				status.LastFloor = floor
 				fallthrough;
 			}
-    		case "UP":{ 
+			case "UP":{
 				fallthrough;
 			}
-    		case "DOWN":{ 
+			case "DOWN":{
 				fallthrough;
 			}
-    		case "DOOR_OPEN":{ 
+			case "DOOR_OPEN":{
 				fallthrough;
 			}
-			case "ESTOP":{ 
-				fallthrough;
-			}
-			case "ERROR":{ 
+			case "ERROR":{
 				fallthrough;
 			}
 			default:{
-
-//  			generatedMsgs_c <- "Jeg lever"
+				mystatus.State=state
+				mystatus.LastFloor=elevator.Current_floor()
+//				generatedMsgs_c <- 
 			}
-    	}
+		}
 	}
 }

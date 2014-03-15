@@ -7,14 +7,12 @@ import (
     "time"
     "drivers"
     "encoding/json"
-    "bytes"
+    "misc"
 )
 var orderlist = make([]Order,0)
 var statuslist = make(map[string]Status)
 
-
 func PackNetworkMessage(message Networkmessage) []byte {
-//  send := make([]byte,1024)
 	send, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Could not pack message: ",err.Error())
@@ -24,8 +22,7 @@ func PackNetworkMessage(message Networkmessage) []byte {
 
 func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
 	var message Networkmessage
-    trimed := bytes.Trim(pack, "\x00")
-	err := json.Unmarshal(trimed[:bit], &message)
+	err := json.Unmarshal(pack[:bit], &message)
 	if err != nil {
 		fmt.Println("Could not unpack message: ", err.Error())
 	}
@@ -77,8 +74,6 @@ func Orderdistr(generatedMsgs_c chan Networkmessage){
 //Receives messages from a connections and adds it to a channel
 func Receiver(conn net.Conn, receivedMsgs_c chan Networkmessage){
     buf := make([]byte,1024)
-//  var buf []byte
-//  conn.SetReadBuffer(1024)
     for {
         bit, err := conn.Read(buf[0:])
         if err != nil {
@@ -112,14 +107,13 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 			connMap[newConn.LocalAddr().String()] = newConn
 		case sendMsg := <- generatedMsgs_c:{
             packed := make([]byte,1024)
-//          fmt.Println(sendMsg)
             packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
-				connection.Write(packed)
-//              if err != nil {
-//                  fmt.Println("Error writing: ", err.Error())
-//              }
-//              fmt.Println(mess)
+                connection.SetWriteDeadline(time.Now().Add(2 * time.Second))
+				_, err := connection.Write(packed)
+                if err != nil {
+                    fmt.Println("KUK komputeren")
+                }
 			}
 		}
         case in := <-receivedMsgs_c:
@@ -128,8 +122,6 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
                 orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
                 fmt.Println(orderlist)
-
-
             }
         case newConn := <- newConn_c:
             go Receiver(newConn, receivedMsgs_c)
@@ -140,10 +132,15 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 
 //Dials all elevators in the map
 func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
+    myip := misc.GetLocalIP()
+    dialConn, err := net.Dial("tcp", "localhost"+port)
+    if err != nil {
+        fmt.Println(err)
+    }
+	dialconn_c <-dialConn
 	for{
 		for elevator,status := range elevators{
-//			Println(elevators)
-			if !status{
+			if !status && elevator != myip{
 				dialConn, err := net.Dial("tcp", elevator+port)
 				if err != nil {
 					fmt.Println(err)
@@ -153,6 +150,6 @@ func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
 				}
 			}
 		}
-    	time.Sleep(10000 * time.Millisecond)
+    	time.Sleep(1000 * time.Millisecond)
 	}
 }
