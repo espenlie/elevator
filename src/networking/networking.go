@@ -127,7 +127,6 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 			}
 		}
         case in := <-receivedMsgs_c:
-            fmt.Println(in)
             if in.Order.Floor>0{
                 orderlist=append(orderlist, in.Order)
                 elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
@@ -135,6 +134,7 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
             }
             if in.Status.Source != "" {
                 statuslist[in.Status.Source] = in.Status
+                fmt.Println(statuslist)
             }
         case newConn := <- newConn_c:
             go Receiver(newConn, receivedMsgs_c)
