@@ -66,14 +66,13 @@ func main() {
 	mystatus.Source=myip
 	mystatus.State=state
 	mystatus.LastFloor=elevator.Current_floor()
-	time.Sleep(2000 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond)
 	for{
 //		Println("State: ", state)
 		switch state {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
-				time.Sleep(10 * time.Millisecond)
 //				Println(mystatus)
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
