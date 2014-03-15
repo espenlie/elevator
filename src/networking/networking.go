@@ -157,13 +157,14 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
 func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
     myip := misc.GetLocalIP()
     dialConn, err := net.Dial("tcp", "localhost"+port)
+    elevators[myip]=true
     if err != nil {
         fmt.Println(err)
     }
 	dialconn_c <-dialConn
 	for{
 		for elevator,status := range elevators{
-			if !status && elevator != myip{
+			if !status {
 				dialConn, err := net.Dial("tcp", elevator+port)
 				if err != nil {
 					fmt.Println(err)
@@ -173,6 +174,6 @@ func Dialer(elevators map[string]bool, port string, dialconn_c chan net.Conn){
 				}
 			}
 		}
-    	time.Sleep(1000 * time.Millisecond)
+ 	    time.Sleep(1000 * time.Millisecond)
 	}
 }
