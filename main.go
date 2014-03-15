@@ -13,44 +13,77 @@ import (
 func nextorder(myip string)int{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
-
 	for _,order := range orderlist{
+		taken := false
 		for _,elev := range statuslist{
-			if elev.State=="IDLE" && elev.LastFloor==order.Floor && elev.Source==myip{
-				return order.Floor
+			if elev.State=="IDLE" && elev.LastFloor==order.Floor && elev.Inhouse==false{
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-1) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+1))&& elev.Source==myip{
-				return order.Floor
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-1) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+1)){
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+1 || elev.LastFloor==order.Floor-1) && elev.Source==myip{
-				return order.Floor
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-1 || elev.LastFloor==order.Floor+1) && elev.Inhouse==false{
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-2) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+2))&& elev.Source==myip{
-				return order.Floor
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-2) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+2)){
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+2 || elev.LastFloor==order.Floor-2) && elev.Source==myip{
-				return order.Floor
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-2 || elev.LastFloor==order.Floor+2) && elev.Inhouse==false{
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-3) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+3))&& elev.Source==myip{
-				return order.Floor
+			if ((elev.State=="UP" && elev.LastFloor==order.Floor-3) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+3)){
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
+		if taken{continue}
 		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor+3 || elev.LastFloor==order.Floor-3) && elev.Source==myip{
-				return order.Floor
+			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-3 || elev.LastFloor==order.Floor+3) && elev.Inhouse==false{
+				if elev.Source==myip{
+					return order.Floor
+				}else{
+					taken = true
+				}
 			}
 		}
-
 	}
 	return 0
 }

@@ -160,9 +160,10 @@ func Networking(newConn_c chan net.TCPConn, generatedMsgs_c chan Networkmessage,
 }
 
 //Dials all elevators in the map
-func Dialer(elevators map[string]bool, port string, dialconn_c chan net.TCPConn){
+func Dialer(elevators map[string]bool, port int, dialconn_c chan net.TCPConn){
     myip := misc.GetLocalIP()
-    dialConn, err := net.DialTCP("tcp4",nil, "localhost"+port)
+    local := net.TCPAddr{IP:[]byte("127.0.0.1"),Port:port}
+    dialConn, err := net.DialTCP("tcp4",nil, *local)
     elevators[myip]=true
     if err != nil {
         fmt.Println(err)
