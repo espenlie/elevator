@@ -73,7 +73,7 @@ func main() {
 				drivers.IoInit()
 				elevator.Elev_init()
 //				Println(mystatus)
-				time.Sleep(50 * time.Millisecond)
+				time.Sleep(10 * time.Millisecond)
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
 				if elevator.Elev_get_floor_sensor_signal()!=-1{

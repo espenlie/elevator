@@ -43,8 +43,8 @@ func SendStatuslist(generatedMsgs_c chan Networkmessage) {
 }
 
 func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
-    for key, _ := range statuslist {
-        if statuslist[key] == status {
+    for _, oldstat := range statuslist {
+        if oldstat == status {
             return false
         }
     }
@@ -142,7 +142,7 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
             if in.Status.Source != "" {
 //              fmt.Println(in.Status)
                 statuslist[in.Status.Source] = in.Status
-                if in.Status.State == "INIT" {
+                if in.Status.State == "INIT" && in.Status.Source != misc.GetLocalIP(){
                     go SendStatuslist(generatedMsgs_c)
                 }
             }
