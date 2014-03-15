@@ -36,6 +36,12 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 	return message
 }
 
+func SendStatuslist(generatedMsgs_c chan Networkmessage) {
+    for _, status:= range statuslist {
+        generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
+    }
+}
+
 func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
     for key, _ := range statuslist {
         if statuslist[key] == status {
@@ -133,6 +139,9 @@ func Networking(newConn_c chan net.Conn, generatedMsgs_c chan Networkmessage, re
                 fmt.Println(orderlist)
             }
             if in.Status.Source != "" {
+                if in.Status.State == "INIT" {
+                    SendStatuslist(generatedMsgs_c)
+                }
                 statuslist[in.Status.Source] = in.Status
                 fmt.Println(statuslist)
             }

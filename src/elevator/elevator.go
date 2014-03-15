@@ -4,6 +4,7 @@ import (
 //  "fmt"
     "time"
     "drivers"
+    "misc"
 )
 const N_FLOORS = 4
 const N_BUTTONS = 3
@@ -28,6 +29,18 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {drivers.FLOOR_UP2, drivers.FLOOR_DOWN2, drivers.FLOOR_COMMAND2},
     {drivers.FLOOR_UP3, drivers.FLOOR_DOWN3, drivers.FLOOR_COMMAND3},
     {drivers.FLOOR_UP4, drivers.FLOOR_DOWN4, drivers.FLOOR_COMMAND4},
+}
+
+func Elev_set_speed(speed int){
+    // If to start (speed > 0)
+    if (speed > 0){
+        drivers.ClearBit(drivers.MOTORDIR)
+    }else{
+        drivers.SetBit(drivers.MOTORDIR)
+    }
+    // Write new setting to motor.
+    speed = misc.Abs(speed)
+    drivers.WriteAnalog(drivers.MOTOR, 2048 + 4*speed)
 }
 
 func Elev_set_floor_indicator(floor int){

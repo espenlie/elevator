@@ -64,17 +64,26 @@ func main() {
 //	var floor int
 	var mystatus networking.Status
 	mystatus.Source=myip
+	mystatus.State=state
+	mystatus.LastFloor=elevator.Current_floor()
 	for{
 //		Println("State: ", state)
 		switch state {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
-				state="IDLE"
+				time.Sleep(10 * time.Millisecond)
+//				Println(mystatus)
+				networking.NewStatus(mystatus, generatedMsgs_c)
+				elevator.Elev_set_speed(-300)
+				if elevator.Elev_get_floor_sensor_signal()!=-1{
+					elevator.Elev_set_speed(0)
+					state="IDLE"
+				}
 				fallthrough;
 				}
 			case "IDLE":{
-				time.Sleep(100 * time.Millisecond)
+				time.Sleep(10 * time.Millisecond)
 //				status.State = state
 //				status.LastFloor = floor
 				fallthrough;
