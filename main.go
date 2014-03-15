@@ -146,6 +146,7 @@ func main() {
 				}
 			}
 			case "IDLE":{
+				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
 				if nextorder(myip).Floor>elevator.Current_floor(){
 					state="UP"
