@@ -167,6 +167,8 @@ func main() {
 				}else if nextorder(myip).Floor==elevator.Current_floor(){
 					taken =nextorder(myip)
 					state="DOOR_OPEN"
+				}else{
+					state="IDLE"
 				}
 
 				time.Sleep(10 * time.Millisecond)
@@ -180,6 +182,8 @@ func main() {
 				}else if nextorder(myip).Floor==elevator.Current_floor(){
 					taken =nextorder(myip)
 					state="DOOR_OPEN"
+				}else{
+					state="IDLE"
 				}
 				time.Sleep(10 * time.Millisecond)
 			}
