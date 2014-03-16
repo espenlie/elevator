@@ -28,6 +28,7 @@ func main() {
     message_c     := make(chan []byte, 10)
     error_c       := make(chan string, 10)
     connect_c     := make(chan Com,10)
+
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c, connect_c)
