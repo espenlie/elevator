@@ -88,6 +88,20 @@ func nextorder(myip string)networking.Order{
 	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
+func nextstate()string{
+	if nextorder(myip).Floor>elevator.Current_floor(){
+		return "UP"
+	}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
+		return "DOWN"
+	}else if nextorder(myip).Floor==elevator.Current_floor(){
+		taken =nextorder(myip)
+		return "DOOR_OPEN"
+	}else{
+		return "IDLE"
+	}
+}
+
+
 func main() {
 
 	myip := misc.GetLocalIP()
@@ -148,44 +162,17 @@ func main() {
 			case "IDLE":{
 				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
-				if nextorder(myip).Floor>elevator.Current_floor(){
-					state="UP"
-				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
-					state="DOWN"
-				}else if nextorder(myip).Floor==elevator.Current_floor(){
-					taken =nextorder(myip)
-					state="DOOR_OPEN"
-				}
-
+				state =nextstate()
 				time.Sleep(50 * time.Millisecond)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
-				if nextorder(myip).Floor>elevator.Current_floor(){
-					state="UP"
-				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
-					state="DOWN"
-				}else if nextorder(myip).Floor==elevator.Current_floor(){
-					taken =nextorder(myip)
-					state="DOOR_OPEN"
-				}else{
-					state="IDLE"
-				}
-
+				state =nextstate()
 				time.Sleep(50 * time.Millisecond)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
-				if nextorder(myip).Floor>elevator.Current_floor(){
-					state="UP"
-				}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
-					state="DOWN"
-				}else if nextorder(myip).Floor==elevator.Current_floor(){
-					taken =nextorder(myip)
-					state="DOOR_OPEN"
-				}else{
-					state="IDLE"
-				}
+				state =nextstate()
 				time.Sleep(50 * time.Millisecond)
 			}
 			case "DOOR_OPEN":{
@@ -207,6 +194,7 @@ func main() {
 //		Println(orderlist)
 //		Println(state)
 //		Println(nextorder(myip))
+		Peintln(state)
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 		networking.NewStatus(mystatus, generatedMsgs_c)
