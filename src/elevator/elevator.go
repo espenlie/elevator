@@ -54,6 +54,13 @@ func Elev_set_floor_indicator(floor int){
         drivers.ClearBit(drivers.FLOOR_IND2)}
 }
 
+func Elev_at_floor()bool{
+    if Elev_get_floor_sensor_signal()!=-1{
+        return true
+    }
+    return false
+}
+
 func Elev_get_floor_sensor_signal()int{
     if drivers.ReadBit(drivers.SENSOR1){
         return 1
@@ -70,13 +77,11 @@ func Elev_get_floor_sensor_signal()int{
 
 
 func FloorUpdater(){
-    for{
-        floor := Elev_get_floor_sensor_signal()
-        if (floor!=-1){
-            Elev_set_floor_indicator(floor)
-        }
-        time.Sleep(100 * time.Millisecond)
+    floor := Elev_get_floor_sensor_signal()
+    if (floor!=-1){
+        Elev_set_floor_indicator(floor)
     }
+    time.Sleep(100 * time.Millisecond)
 }
 
 func Current_floor()int{

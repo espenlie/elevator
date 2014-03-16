@@ -5,6 +5,7 @@ import (
     "fmt"
     "time"
     "strings"
+    "errors"
 //  "io"
 
 )
@@ -12,7 +13,7 @@ import (
 var elevator = make(map[string]bool)
 
 type Com struct {
-    Address string
+    Address *net.TCPConn
     Connect bool
 }
 
@@ -30,14 +31,13 @@ func main() {
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c, connect_c)
-    go IsAlive(connections, error_c, connect_c)
     go Dialer(connect_c,":5555", connections_c)
     for {
         select {
             case newconnection := <- connections_c  :{
                 fmt.Println("New connection",newconnection.LocalAddr().String())
                 connections = append(connections, newconnection)
-//              connectionmap[newconnection.LocalAddr().String()] = newconnection
+                go IsAlive(newconnection, error_c, connect_c)
             }
             case newmessage := <- message_c :{
                 fmt.Println(string(newmessage))
@@ -46,7 +46,11 @@ func main() {
                 fmt.Println("Errormessage:"+errorm)
             }
             case lost := <- connect_c :{
-                elevator[lost.Address]=lost.Connect
+                elevator[strings.Split(lost.Address.RemoteAddr().String(),":")[0]]=lost.Connect
+                connections, err := RemoveConnection(connections, lost.Address)
+                if err != nil {
+                    fmt.Println(err)
+                }
             }
 
             default :{
@@ -55,38 +59,32 @@ func main() {
             }
         }
     }
-
 }
 
-func IsAlive(connections []*net.TCPConn, error_c chan string, connect_c chan Com) {
-    for{
-        for i, connection := range connections {
-//          var test net.PacketConn
-//          var buff []byte
-//          reads, err := connection.Read(buff)
-//          err := connection.SetKeepAlive(true)
-//          connection.SetWriteDeadline(time.Now().Add(time.Second))
-//          _, err := test.WriteTo([]byte("test"),connection.RemoteAddr())
-            fmt.Println(connection.RemoteAddr().String())
-            connection.SetDeadline(time.Now().Add(time.Second))
-            _, err := connection.Write([]byte("test"))
-//          err := connection.SetLinger(1)
-//          p, _ := connection.Write([]byte("test"))
-//          connection.SetKeepAlive(true)
-//          err := connection.SetKeepAlivePeriod(time.Second)
-            if err != nil {
-//          if reads,err := connection.Read(buff); err == io.EOF {
-                connection.Close() 
-                connect_c <- Com{Address:connection.RemoteAddr().String(),Connect:false}
-//              elevator[i]=false
-//              fmt.Printf("%v%v",j,p)
-                error_c <- err.Error()
+func RemoveConnection(connections []*net,TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
+        for i, con := range connections {
+            if con == connection {
                 connections[i] = connections[len(connections)-1]
-//              delete(connections,i)
-//          }else{
-//              connection.SetReadDeadline(time.Time{})
-//              fmt.Println(reads)
+                return connections,nil
             }
+        }
+    return connections, errors.New("Connection not in slice") 
+}
+
+
+func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
+    for{
+//      err := connection.SetKeepAlive(true)
+        connection.SetWriteDeadline(time.Now().Add(time.Second))
+//      connection.SetDeadline(time.Now().Add(time.Second))
+        _, err := connection.Write([]byte("test"))
+//      err := connection.SetLinger(1)
+//      connection.SetKeepAlive(true)
+//      err := connection.SetKeepAlivePeriod(time.Second)
+        if err != nil {
+            connection.Close()
+            connect_c <- Com{Address:connection,Connect:false}
+            error_c <- err.Error()
         }
         time.Sleep(1*time.Second)
     }
@@ -106,7 +104,7 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 				}
 			}
 		}
- 	    time.Sleep(1000 * time.Millisecond)
+	    time.Sleep(1000 * time.Millisecond)
 	}
 }
 
@@ -116,7 +114,7 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
         if err != nil {
             fmt.Println(err)
         }
-        connect_c <- Com{Address:strings.Split(newConn.RemoteAddr().String(),":")[0], Connect:true}
+        connect_c <- Com{Address:newConn, Connect:true}
         newConn_c <- newConn
     }
 }

@@ -12,21 +12,22 @@ import (
 )
 
 
+
+
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
 	for _,order := range orderlist{
-		Println("Checking for order: ", order)
+//		Println("Checking for order: ", order)
 		elevatorloop:
 		for i := 0; i < elevator.N_FLOORS; i++ {
-			Println("Distance: ", i)
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
 					Println("Distance: ", i)
 					Println("Elevator status: ", statuslist)
 					Println("Orderlist: ", orderlist)
 					Println("Order: ", order)
-					if status.State=="IDLE" && (status.LastFloor==order.Floor+1 || status.LastFloor==order.Floor-1)&& status.Inhouse==false{
+					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
 						if statuslist[elevator].Source==myip{
 //							Println("Taking", order)
 							return order
@@ -68,7 +69,6 @@ func main() {
 
 	myip := misc.GetLocalIP()
 	Println(myip)
-	go elevator.FloorUpdater()
 
 //	var conf misc.Config
 	conf := misc.LoadConfig("/home/student/LL/elevator/config/conf.json")
@@ -102,6 +102,7 @@ func main() {
 	state := "INIT"
 //	var floor int
 	var mystatus networking.Status
+	var AtFloor bool
 	var order networking.Order
 	mystatus.Source=myip
 	mystatus.State=state
@@ -141,7 +142,7 @@ func main() {
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
 				elevator.Elev_set_door_open_lamp(0)
-				state="IDLE"
+				state , order = nextstate(myip, connections)
 			}
 			case "ERROR":{
 			}
@@ -154,6 +155,11 @@ func main() {
 //		Println(nextorder(myip))
 		time.Sleep(50 * time.Millisecond)
 //		Println(state)
+		elevator.FloorUpdater()
+		AtFloor = elevator.Elev_at_floor()
+		if order.Floor==elevator.Elev_get_floor_sensor_signal() && AtFloor{
+			state= "DOOR_OPEN"
+		}
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 		networking.NewStatus(mystatus, generatedMsgs_c)
