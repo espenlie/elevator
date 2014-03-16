@@ -51,13 +51,14 @@ func IsAlive(connections map[string]*net.TCPConn, error_c chan string) {
 //          var buff []byte
 //          reads, err := connection.Read(buff)
 //          err := connection.SetKeepAlive(true)
-//          connection.SetReadDeadline(time.Now())
+            connection.SetWriteDeadline(time.Now().Add(time.Second))
             _, err := connection.Write([]byte("test"))
             if err != nil {
 //          if reads,err := connection.Read(buff); err == io.EOF {
                 connection.Close() 
+//              elevator[i]=false
 //              fmt.Println("hei")
-                error_c <- "hei"
+                error_c <- err.Error()
 //              error_c <- err.Error()
 //              connection.Close()
                 delete(connections,i)
