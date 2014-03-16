@@ -71,7 +71,6 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
                 return connections,nil
             }
         }
-    fmt.Println("Nei")
     return connections, errors.New("Connection not in slice") 
 }
 
@@ -89,6 +88,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
             connection.Close()
             connect_c <- Com{Address:connection,Connect:false}
             error_c <- err.Error()
+            break
         }
         time.Sleep(1*time.Second)
     }
