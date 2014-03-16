@@ -4,6 +4,7 @@ import (
     "net"
     "fmt"
     "time"
+    "strings"
 //  "io"
 
 )
@@ -20,21 +21,23 @@ func main() {
     elevator["129.241.187.156"]=false
     elevator["129.241.187.161"]=false
     elevator["129.241.187.158"]=false
-	connectionmap := make(map[string]*net.TCPConn)
+//	connectionmap := make(map[string]*net.TCPConn)
+    var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
     error_c       := make(chan string, 10)
     connect_c     := make(chan Com,10)
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
-    go Listener(listenconn, connections_c)
-    go IsAlive(connectionmap, error_c, connect_c)
-    go Dialer(elevator,":5555", connections_c)
+    go Listener(listenconn, connections_c, connect_c)
+    go IsAlive(connections, error_c, connect_c)
+    go Dialer(connect_c,":5555", connections_c)
     for {
         select {
             case newconnection := <- connections_c  :{
                 fmt.Println("New connection",newconnection.LocalAddr().String())
-                connectionmap[newconnection.LocalAddr().String()] = newconnection
+                connections = append(connections, newconnection)
+//              connectionmap[newconnection.LocalAddr().String()] = newconnection
             }
             case newmessage := <- message_c :{
                 fmt.Println(string(newmessage))
@@ -48,14 +51,14 @@ func main() {
 
             default :{
                 time.Sleep(1*time.Second)
-                fmt.Println(connectionmap)
+                fmt.Println(connections)
             }
         }
     }
 
 }
 
-func IsAlive(connections map[string]*net.TCPConn, error_c chan string, connect_c chan Com) {
+func IsAlive(connections []*net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
         for i, connection := range connections {
 //          var test net.PacketConn
@@ -64,6 +67,7 @@ func IsAlive(connections map[string]*net.TCPConn, error_c chan string, connect_c
 //          err := connection.SetKeepAlive(true)
 //          connection.SetWriteDeadline(time.Now().Add(time.Second))
 //          _, err := test.WriteTo([]byte("test"),connection.RemoteAddr())
+            fmt.Println(connection.RemoteAddr().String())
             connection.SetDeadline(time.Now().Add(time.Second))
             _, err := connection.Write([]byte("test"))
 //          err := connection.SetLinger(1)
@@ -73,13 +77,12 @@ func IsAlive(connections map[string]*net.TCPConn, error_c chan string, connect_c
             if err != nil {
 //          if reads,err := connection.Read(buff); err == io.EOF {
                 connection.Close() 
-                connect_c <- Com{Address:i,Connect:false}
+                connect_c <- Com{Address:connection.RemoteAddr().String(),Connect:false}
 //              elevator[i]=false
 //              fmt.Printf("%v%v",j,p)
                 error_c <- err.Error()
-//              error_c <- err.Error()
-//              connection.Close()
-                delete(connections,i)
+                connections[i] = connections[len(connections)-1]
+//              delete(connections,i)
 //          }else{
 //              connection.SetReadDeadline(time.Time{})
 //              fmt.Println(reads)
@@ -90,14 +93,14 @@ func IsAlive(connections map[string]*net.TCPConn, error_c chan string, connect_c
 }
 func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 	for{
-		for elevator,status := range elevators{
+		for elevator,status := range elevator{
 			if !status {
                 raddr, err := net.ResolveTCPAddr("tcp",elevator+port)
-				dialConn, err := net.DialTCP("tcp4", nil, raddr)
+				dialConn, err := net.DialTCP("tcp", nil, raddr)
 				if err != nil {
-					fmt.Println(err)
+//					fmt.Println(err)
 				}else{
-                    connect_c <- Com{Address:i,Connect:false}
+                    connect_c <- Com{Address:elevator,Connect:true}
                     fmt.Println("Adding: ",dialConn)
 					dialconn_c <-dialConn
 				}
@@ -107,12 +110,13 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 	}
 }
 
-func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn){
+func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan Com){
     for {
         newConn, err := conn.AcceptTCP()
         if err != nil {
             fmt.Println(err)
         }
+        connect_c <- Com{Address:strings.Split(newConn.RemoteAddr().String(),":")[0], Connect:true}
         newConn_c <- newConn
     }
 }
