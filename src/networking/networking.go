@@ -154,7 +154,7 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
                     in.Order.InOut=1
                     for i, b := range orderlist {
                         if b == in.Order {
-                            orderlist[i], orderlist  = orderlist[len(orderlist)-1], orderlist[:len(orderlist)-1]
+                            orderlist = append(orderlist[:i], orderlist[i+1:]...)
                         }
                     }
                 }else{

@@ -51,6 +51,7 @@ func main() {
                 if err != nil {
                     fmt.Println(err)
                 }
+                fmt.Println(connections)
             }
 
             default :{
@@ -61,7 +62,7 @@ func main() {
     }
 }
 
-func RemoveConnection(connections []*net,TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
+func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
             if con == connection {
                 connections[i] = connections[len(connections)-1]
@@ -98,7 +99,7 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 				if err != nil {
 //					fmt.Println(err)
 				}else{
-                    connect_c <- Com{Address:elevator,Connect:true}
+                    connect_c <- Com{Address:dialConn,Connect:true}
                     fmt.Println("Adding: ",dialConn)
 					dialconn_c <-dialConn
 				}
