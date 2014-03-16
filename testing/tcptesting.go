@@ -12,12 +12,12 @@ var elevator = make(map[string]bool)
 
 
 func main() {
-    elevator["193.35.52.194"]=false
-    elevator["193.35.52.178"]=false
+    elevator["129.241.187.156"]=false
+    elevator["129.241.187.161"]=false
 	connectionmap := make(map[string]*net.TCPConn)
-    connections_c := make(chan *net.TCPConn)
-    message_c     := make(chan []byte)
-    error_c       := make(chan string)
+    connections_c := make(chan *net.TCPConn, 10)
+    message_c     := make(chan []byte, 10)
+    error_c       := make(chan string, 10)
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c)
@@ -47,18 +47,22 @@ func main() {
 func IsAlive(connections map[string]*net.TCPConn, error_c chan string) {
     for{
         for i, connection := range connections {
-            var buff []byte
+//          var buff []byte
 //          reads, err := connection.Read(buff)
 //          err := connection.SetKeepAlive(true)
-            connection.SetReadDeadline(time.Now())
-            if reads,err := connection.Read(buff); err == io.EOF {
+//          connection.SetReadDeadline(time.Now())
+            _, err := connection.Write([]byte("test"))
+            if err != nil {
+//          if reads,err := connection.Read(buff); err == io.EOF {
                 connection.Close() 
-                error_c <- err.Error()
-                connection.Close()
+//              fmt.Println("hei")
+                error_c <- "hei"
+//              error_c <- err.Error()
+//              connection.Close()
                 delete(connections,i)
-            }else{
-                connection.SetReadDeadline(time.Time{})
-                fmt.Println(reads)
+//          }else{
+//              connection.SetReadDeadline(time.Time{})
+//              fmt.Println(reads)
             }
         }
         time.Sleep(1*time.Second)
