@@ -90,7 +90,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage){
         if drivers.ReadBit(drivers.FLOOR_DOWN4){
             Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
         }
-	time.Sleep(1 * time.Millisecond)
+	time.Sleep(50 * time.Millisecond)
     }
 }
 

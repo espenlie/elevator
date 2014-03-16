@@ -47,9 +47,11 @@ func main() {
             }
             case lost := <- connect_c :{
                 elevator[strings.Split(lost.Address.RemoteAddr().String(),":")[0]]=lost.Connect
-                connections, err := RemoveConnection(connections, lost.Address)
-                if err != nil {
-                    fmt.Println(err)
+                if !lost.Connect{
+                    connections, err := RemoveConnection(connections, lost.Address)
+                    if err != nil {
+                        fmt.Println(err)
+                    }
                 }
                 fmt.Println(connections)
             }
@@ -69,6 +71,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
                 return connections,nil
             }
         }
+    fmt.Println("Nei")
     return connections, errors.New("Connection not in slice") 
 }
 
