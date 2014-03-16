@@ -32,7 +32,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 //							Println("Taking", order)
 							return order
 						}else{
-							statuslist[elevator]="BUSY"
+							statuslist[elevator].State="BUSY"
 							continue elevatorloop
 						}
 					}
