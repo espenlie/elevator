@@ -10,77 +10,33 @@ import (
 	"networking"
 	"elevator"
 )
-func nextorder(myip string)networking.Order{
+
+
+func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
+	orderloop:
 	for _,order := range orderlist{
-		taken := false
-		for _,elev := range statuslist{
-			if elev.State=="IDLE" && elev.LastFloor==order.Floor && elev.Inhouse==false{
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-1) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+1)){
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-1 || elev.LastFloor==order.Floor+1) && elev.Inhouse==false{
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-2) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+2)){
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-2 || elev.LastFloor==order.Floor+2) && elev.Inhouse==false{
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if ((elev.State=="UP" && elev.LastFloor==order.Floor-3) || (elev.State=="DOWN" && elev.LastFloor==order.Floor+3)){
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
-				}
-			}
-		}
-		if taken{continue}
-		for _,elev := range statuslist{
-			if elev.State=="IDLE" && (elev.LastFloor==order.Floor-3 || elev.LastFloor==order.Floor+3) && elev.Inhouse==false{
-				if elev.Source==myip{
-					return order
-				}else{
-					taken = true
+		for i := 0; i < elevator.N_FLOORS; i++ {
+			for elevator,_ :=range connections{
+				if val,ok := statuslist[elevator]; ok{
+					Println(val)
+					if statuslist[elevator].State=="IDLE" && statuslist[elevator].LastFloor==order.Floor+i && statuslist[elevator].Inhouse==false{
+						if statuslist[elevator].Source==myip{
+							return order
+						}else{
+							continue orderloop
+						}
+					}
+				if i!=0{
+						if ((statuslist[elevator].State=="UP" && statuslist[elevator].LastFloor==order.Floor-i) || (statuslist[elevator].State=="DOWN" && statuslist[elevator].LastFloor==order.Floor+i)){
+							if statuslist[elevator].Source==myip{
+								return order
+							}else{
+							continue orderloop
+							}
+						}
+					}
 				}
 			}
 		}
@@ -88,13 +44,13 @@ func nextorder(myip string)networking.Order{
 	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
-func nextstate()string{
-	if nextorder(myip).Floor>elevator.Current_floor(){
+func nextstate(myip string, connections map[string]bool)string{
+	next := nextorder(myip, connections)
+	if next.Floor>elevator.Current_floor(){
 		return "UP"
-	}else if (nextorder(myip).Floor<elevator.Current_floor() && nextorder(myip).Floor!=0){
+	}else if (next.Floor<elevator.Current_floor() && next.Floor!=0){
 		return "DOWN"
-	}else if nextorder(myip).Floor==elevator.Current_floor(){
-		taken =nextorder(myip)
+	}else if next.Floor==elevator.Current_floor(){
 		return "DOOR_OPEN"
 	}else{
 		return "IDLE"
@@ -120,8 +76,8 @@ func main() {
 
     listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
     listenConn, _ := ListenTCP("tcp", listenAddr)
-    receivedMsgs_c  := make(chan networking.Networkmessage)
-    generatedMsgs_c  := make(chan networking.Networkmessage)
+    receivedMsgs_c  := make(chan networking.Networkmessage, 10)
+    generatedMsgs_c  := make(chan networking.Networkmessage, 10)
     newConn_c       := make(chan *TCPConn, 10)
     dialConn_c      := make(chan *TCPConn, 10)
 
@@ -151,7 +107,6 @@ func main() {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
-				time.Sleep(10 * time.Millisecond)
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
 				if elevator.Elev_get_floor_sensor_signal()!=-1{
@@ -162,18 +117,15 @@ func main() {
 			case "IDLE":{
 				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
-				state =nextstate()
-				time.Sleep(50 * time.Millisecond)
+				state =nextstate(myip, connections)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
-				state =nextstate()
-				time.Sleep(50 * time.Millisecond)
+				state =nextstate(myip, connections)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
-				state =nextstate()
-				time.Sleep(50 * time.Millisecond)
+				state =nextstate(myip, connections)
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
@@ -194,7 +146,8 @@ func main() {
 //		Println(orderlist)
 //		Println(state)
 //		Println(nextorder(myip))
-		Peintln(state)
+		time.Sleep(50 * time.Millisecond)
+		Println(state)
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 		networking.NewStatus(mystatus, generatedMsgs_c)

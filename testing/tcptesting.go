@@ -10,6 +10,11 @@ import (
 
 var elevator = make(map[string]bool)
 
+type Com struct {
+    Address string
+    Connect bool
+}
+
 
 func main() {
     elevator["129.241.187.156"]=false
@@ -19,10 +24,11 @@ func main() {
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
     error_c       := make(chan string, 10)
+    connect_c     := make(chan Com,10)
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c)
-    go IsAlive(connectionmap, error_c)
+    go IsAlive(connectionmap, error_c, connect_c)
     go Dialer(elevator,":5555", connections_c)
     for {
         select {
@@ -33,9 +39,13 @@ func main() {
             case newmessage := <- message_c :{
                 fmt.Println(string(newmessage))
             }
-            case error := <- error_c :{
-                fmt.Println("Errormessage:"+error)
+            case errorm := <- error_c :{
+                fmt.Println("Errormessage:"+errorm)
             }
+            case lost := <- connect_c :{
+                elevator[lost.Address]=lost.Connect
+            }
+
             default :{
                 time.Sleep(1*time.Second)
                 fmt.Println(connectionmap)
@@ -45,19 +55,27 @@ func main() {
 
 }
 
-func IsAlive(connections map[string]*net.TCPConn, error_c chan string) {
+func IsAlive(connections map[string]*net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
         for i, connection := range connections {
+//          var test net.PacketConn
 //          var buff []byte
 //          reads, err := connection.Read(buff)
 //          err := connection.SetKeepAlive(true)
-            connection.SetWriteDeadline(time.Now().Add(time.Second))
+//          connection.SetWriteDeadline(time.Now().Add(time.Second))
+//          _, err := test.WriteTo([]byte("test"),connection.RemoteAddr())
+            connection.SetDeadline(time.Now().Add(time.Second))
             _, err := connection.Write([]byte("test"))
+//          err := connection.SetLinger(1)
+//          p, _ := connection.Write([]byte("test"))
+//          connection.SetKeepAlive(true)
+//          err := connection.SetKeepAlivePeriod(time.Second)
             if err != nil {
 //          if reads,err := connection.Read(buff); err == io.EOF {
                 connection.Close() 
+                connect_c <- Com{Address:i,Connect:false}
 //              elevator[i]=false
-//              fmt.Println("hei")
+//              fmt.Printf("%v%v",j,p)
                 error_c <- err.Error()
 //              error_c <- err.Error()
 //              connection.Close()
@@ -70,7 +88,7 @@ func IsAlive(connections map[string]*net.TCPConn, error_c chan string) {
         time.Sleep(1*time.Second)
     }
 }
-func Dialer(elevators map[string]bool, port string, dialconn_c chan *net.TCPConn){
+func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 	for{
 		for elevator,status := range elevators{
 			if !status {
@@ -79,7 +97,7 @@ func Dialer(elevators map[string]bool, port string, dialconn_c chan *net.TCPConn
 				if err != nil {
 					fmt.Println(err)
 				}else{
-					elevators[elevator]=true
+                    connect_c <- Com{Address:i,Connect:false}
                     fmt.Println("Adding: ",dialConn)
 					dialconn_c <-dialConn
 				}
