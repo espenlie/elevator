@@ -14,6 +14,7 @@ var elevator = make(map[string]bool)
 func main() {
     elevator["129.241.187.156"]=false
     elevator["129.241.187.161"]=false
+    elevator["129.241.187.158"]=false
 	connectionmap := make(map[string]*net.TCPConn)
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
