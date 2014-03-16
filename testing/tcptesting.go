@@ -52,8 +52,8 @@ func main() {
                     if err != nil {
                         fmt.Println(err)
                     }
+                    fmt.Println(connections)
                 }
-                fmt.Println(connections)
             }
 
             default :{
@@ -67,7 +67,7 @@ func main() {
 func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
             if con == connection {
-                connections[i] = connections[len(connections)-1]
+                connections = append(connections[:i], connections[i+1:]...)
                 return connections,nil
             }
         }
