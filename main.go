@@ -105,7 +105,6 @@ func main() {
 	state := "INIT"
 //	var floor int
 	var mystatus networking.Status
-	var AtFloor bool
 	var order networking.Order
 	mystatus.Source=myip
 	mystatus.State=state
