@@ -38,10 +38,11 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 						}
 					}
 					if i!=0{
-						if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor)){
+						if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
 							if statuslist[elevator].Source==myip{
 								return order
 							}else{
+							delete(statuslist,elevator)
 							continue elevatorloop
 							}
 						}
@@ -53,19 +54,19 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
-func nextstate(myip string, connections map[string]bool) (string, networking.Order){
+func nextstate(myip string, connections map[string]bool, mystate string) (string, networking.Order){
 	next := nextorder(myip, connections)
 	if next.Floor>elevator.Current_floor(){
 		return "UP", next
 	}else if (next.Floor<elevator.Current_floor() && next.Floor!=0){
 		return "DOWN", next
-	}else if next.Floor==elevator.Current_floor(){
+	}else if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){
 		return "DOOR_OPEN", next
-	}else{
+	}else if elevator.Elev_at_floor(){
 		return "IDLE", next
-	}
+	}else{
+	return mystate
 }
-
 
 func main() {
 
@@ -139,7 +140,6 @@ func main() {
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
 				order.InOut=0
-				time.Sleep(50 * time.Millisecond)
 				networking.Neworder(generatedMsgs_c, order)
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
@@ -158,10 +158,6 @@ func main() {
 		time.Sleep(50 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
-		AtFloor = elevator.Elev_at_floor()
-		if order.Floor==elevator.Elev_get_floor_sensor_signal() && AtFloor{
-			state= "DOOR_OPEN"
-		}
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 		networking.NewStatus(mystatus, generatedMsgs_c)
