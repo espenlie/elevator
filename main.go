@@ -1,4 +1,4 @@
-package main
+ package main
 import (
     ."fmt"
     ."net"
@@ -124,15 +124,15 @@ func main() {
 			case "IDLE":{
 				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
-				state , order = nextstate(myip, connections)
+				state , order = nextstate(myip, connections, mystatus)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
-				state, order = nextstate(myip, connections)
+				state, order = nextstate(myip, connections, mystatus)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
-				state, order = nextstate(myip, connections)
+				state, order = nextstate(myip, connections, mystatus)
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
