@@ -1,4 +1,4 @@
-package main
+ package main
 import (
     ."fmt"
     ."net"
@@ -17,32 +17,29 @@ import (
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
+	orderloop:
 	for _,order := range orderlist{
-//		Println("Checking for order: ", order)
-		elevatorloop:
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
-//					Println("Distance: ", i)
-//					Println("Elevator status: ", statuslist)
-//					Println(statuslist[elevator].State)
-//					Println("Orderlist: ", orderlist)
-//					Println("Order: ", order)
 					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
 						if statuslist[elevator].Source==myip{
 							return order
 						}else{
 							delete(statuslist,elevator)
-							continue elevatorloop
+							continue orderloop
 						}
 					}
+				}
+			}
+			for elevator,_ :=range connections{
+				if status,ok := statuslist[elevator]; ok{
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
 						if statuslist[elevator].Source==myip{
-//							Println("Taking", order)
 							return order
 						}else{
 							delete(statuslist,elevator)
-							continue elevatorloop
+							continue orderloop
 						}
 					}
 				}
@@ -63,7 +60,7 @@ func nextstate(myip string, connections map[string]bool, mystate string) (string
 	}else if elevator.Elev_at_floor(){
 		return "IDLE", next
 	}else{
-	return mystate
+	return mystate, networking.Order{Direction:0,Floor:0,InOut:0}}
 }
 
 func main() {
@@ -107,7 +104,6 @@ func main() {
 	mystatus.Source=myip
 	mystatus.State=state
 	mystatus.LastFloor=elevator.Current_floor()
-	time.Sleep(1500 * time.Millisecond)
 	for{
 //		Println("State: ", state)
 		switch state {
@@ -116,23 +112,20 @@ func main() {
 				elevator.Elev_init()
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
-				if elevator.Elev_get_floor_sensor_signal()!=-1{
-					elevator.Elev_set_speed(0)
-					state="IDLE"
-				}
+				state , order = nextstate(myip, connections, mystatus.State)
 			}
 			case "IDLE":{
 				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
-				state , order = nextstate(myip, connections)
+				state , order = nextstate(myip, connections, mystatus.State)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
-				state, order = nextstate(myip, connections)
+				state, order = nextstate(myip, connections, mystatus.State)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
-				state, order = nextstate(myip, connections)
+				state, order = nextstate(myip, connections, mystatus.State)
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
@@ -141,7 +134,7 @@ func main() {
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
 				elevator.Elev_set_door_open_lamp(0)
-				state , order = nextstate(myip, connections)
+				state , order = nextstate(myip, connections, mystatus.State)
 			}
 			case "ERROR":{
 			}
@@ -152,7 +145,7 @@ func main() {
 //		Println(orderlist)
 //		Println(state)
 //		Println(nextorder(myip))
-		time.Sleep(50 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state
