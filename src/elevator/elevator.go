@@ -8,6 +8,7 @@ import (
 )
 const N_FLOORS = 4
 const N_BUTTONS = 3
+const STOP_REVERSE_TIME = 10 // Antall Millisecond i revers ved stop
 
 type Elev_button int
 
@@ -32,6 +33,15 @@ var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 }
 
 func Elev_set_speed(speed int){
+    // Hvis speed blir satt til 0, vil neste if-setning hjelpe oss til å stoppe heisen effektivt
+    if (speed == 0){
+        if(drivers.ReadBit(drivers.MOTORDIR)){
+            drivers.ClearBit(drivers.MOTORDIR)
+        }else {
+            drivers.SetBit(drivers.MOTORDIR)
+        }
+				time.Sleep(STOP_REVERSE_TIME * time.Millisecond)
+    }
     // If to start (speed > 0)
     if (speed > 0){
         drivers.ClearBit(drivers.MOTORDIR)
@@ -39,8 +49,7 @@ func Elev_set_speed(speed int){
         drivers.SetBit(drivers.MOTORDIR)
     }
     // Write new setting to motor.
-    speed = misc.Abs(speed)
-    drivers.WriteAnalog(drivers.MOTOR, 2048 + 4*speed)
+    drivers.WriteAnalog(drivers.MOTOR, 2048 + 4*misc.Abs(speed));
 }
 
 func Elev_set_floor_indicator(floor int){
@@ -81,7 +90,6 @@ func FloorUpdater(){
     if (floor!=-1){
         Elev_set_floor_indicator(floor)
     }
-    time.Sleep(100 * time.Millisecond)
 }
 
 func Current_floor()int{
