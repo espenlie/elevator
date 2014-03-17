@@ -28,14 +28,12 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 //					Println(statuslist[elevator].State)
 //					Println("Orderlist: ", orderlist)
 //					Println("Order: ", order)
-					if i!=0{
-						if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
-							if statuslist[elevator].Source==myip{
-								return order
-							}else{
+					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
+						if statuslist[elevator].Source==myip{
+							return order
+						}else{
 							delete(statuslist,elevator)
 							continue elevatorloop
-							}
 						}
 					}
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
