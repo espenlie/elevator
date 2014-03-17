@@ -124,15 +124,15 @@ func main() {
 			case "IDLE":{
 				elevator.Elev_set_speed(0)
 //				Println(nextorder(myip))
-				state , order = nextstate(myip, connections, mystatus)
+				state , order = nextstate(myip, connections, mystatus.State)
 			}
 			case "UP":{
 				elevator.Elev_set_speed(300)
-				state, order = nextstate(myip, connections, mystatus)
+				state, order = nextstate(myip, connections, mystatus.State)
 			}
 			case "DOWN":{
 				elevator.Elev_set_speed(-300)
-				state, order = nextstate(myip, connections, mystatus)
+				state, order = nextstate(myip, connections, mystatus.State)
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
@@ -141,11 +141,11 @@ func main() {
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
 				elevator.Elev_set_door_open_lamp(0)
-				state , order = nextstate(myip, connections)
+				state , order = nextstate(myip, connections, mystatus.State)
 			}
 			case "ERROR":{
 			}
-		}
+		} 
 //		statuslist := networking.GetStatusList()
 //		orderlist := networking.GetOrderList()
 //		Println(statuslist)
