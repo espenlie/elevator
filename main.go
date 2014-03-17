@@ -63,7 +63,7 @@ func nextstate(myip string, connections map[string]bool, mystate string) (string
 	}else if elevator.Elev_at_floor(){
 		return "IDLE", next
 	}else{
-	return mystate
+	return mystate}
 }
 
 func main() {
