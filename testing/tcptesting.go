@@ -6,7 +6,8 @@ import (
     "time"
     "strings"
     "errors"
-//  "io"
+    "io"
+//  "os"
 
 )
 
@@ -19,10 +20,10 @@ type Com struct {
 
 
 func main() {
-    elevator["129.241.187.156"]=false
-    elevator["129.241.187.161"]=false
-    elevator["129.241.187.158"]=false
-//	connectionmap := make(map[string]*net.TCPConn)
+    elevator["193.35.52.151"]=false
+    elevator["193.35.52.194"]=false
+    elevator["193.35.52.234"]=false
+//  elevator["129.241.187.158"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
@@ -49,11 +50,11 @@ func main() {
             case lost := <- connect_c :{
                 elevator[strings.Split(lost.Address.RemoteAddr().String(),":")[0]]=lost.Connect
                 if !lost.Connect{
-                    connections, err := RemoveConnection(connections, lost.Address)
-                    if err != nil {
-                        fmt.Println(err)
-                    }
-                    fmt.Println(connections)
+                    connections, _ = RemoveConnection(connections, lost.Address)
+//                  if err != nil {
+//                      fmt.Println(err)
+//                  }
+//                  fmt.Println(connections)
                 }
             }
 
@@ -78,19 +79,37 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-//      err := connection.SetKeepAlive(true)
-        connection.SetWriteDeadline(time.Now().Add(time.Second))
-//      connection.SetDeadline(time.Now().Add(time.Second))
-        _, err := connection.Write([]byte("test"))
-//      err := connection.SetLinger(1)
-//      connection.SetKeepAlive(true)
-//      err := connection.SetKeepAlivePeriod(time.Second)
-        if err != nil {
+        connection.SetDeadline(time.Now().Add(500 * time.Millisecond))
+//      connection.Write([]byte("test"))
+        var buf []byte
+//      if _, err := connection.Read(buf[:]); err != nil {
+        if _, err := connection.Write([]byte("a")); err != nil {
+//          fmt.Println(err.Error())
+            if opErr, ok := err.(*net.OpError); ok{
+                if opErr.Timeout() {
+                    fmt.Println("TIMEOUT")
+                }
+                if opErr.Temporary() {
+                    fmt.Println("TEMPORARY")
+                }
+            }
+//          if err == io.EINVAL {
+//              fmt.Println("EINVAL")
+//          }
+            if err == io.EOF {
+                fmt.Println("EOF")
+            }
             connection.Close()
             connect_c <- Com{Address:connection,Connect:false}
-            error_c <- err.Error()
-            break
+//          error_c <- err.Error()
+            return
         }
+//      if err != nil {
+//          connection.Close()
+//          connect_c <- Com{Address:connection,Connect:false}
+//          error_c <- err.Error()
+//          break
+//      }
         time.Sleep(1*time.Second)
     }
 }
@@ -119,6 +138,7 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
         if err != nil {
             fmt.Println(err)
         }
+        fmt.Println("New shit")
         connect_c <- Com{Address:newConn, Connect:true}
         newConn_c <- newConn
     }
@@ -134,5 +154,5 @@ func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
         }
         receivedMsgs_c <- bit
     }
-}
-*/
+}*/
+
