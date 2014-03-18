@@ -23,19 +23,16 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	for _,order := range ordlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
+			Println("Connections: ", connections)
 				if status,ok := statelist[elevator]; ok{
 					Println("Checking:  ", statelist[elevator], "take order: ", order)
 					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
-//						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							Println("BEFORE: ", networking.GetStatusList())
-							Println("BEFORE: ", statelist)
+							Println("Removing: ", elevator)
 							delete(connections, elevator)
 //							delete(statelist,elevator)
-							Println("After: ", networking.GetStatusList())
-							Println("After: ", statelist)
 							continue orderloop
 						}
 					}
@@ -49,6 +46,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
+							Println("Removing: ", elevator)
 							delete(connections, elevator)
 //							delete(statelist,elevator)
 							continue orderloop
