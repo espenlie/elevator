@@ -28,6 +28,7 @@ func main() {
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
+    receive_c     := make(chan string, 10)
     error_c       := make(chan string, 10)
     connect_c     := make(chan Com,10)
 
@@ -41,6 +42,7 @@ func main() {
                 fmt.Println("New connection",newconnection.LocalAddr().String())
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
+                go Receiver(newconnection, receive_c)
                 go IsAlive(newconnection, error_c, connect_c)
             }
             case newmessage := <- message_c :{
@@ -49,15 +51,15 @@ func main() {
             case errorm := <- error_c :{
                 fmt.Println("Errormessage:"+errorm)
             }
+            case in := <- receive_c :{
+                fmt.Println("INCOMING: ",in)
+                
+            }
             case lost := <- connect_c :{
                 index := strings.Split(lost.Address.RemoteAddr().String(),":")[0]
                 elevator[index]=lost.Connect
                 if !lost.Connect{
                     connections, _ = RemoveConnection(connections, lost.Address)
-//                  if err != nil {
-//                      fmt.Println(err)
-//                  }
-//                  fmt.Println(connections)
                 }
             }
 
@@ -68,10 +70,6 @@ func main() {
         }
     }
 }
-//func isTimeout(err error) bool {
-//  e, ok := err.(Error)
-//  return ok && e.Timeout()
-//}
 
 func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
@@ -87,15 +85,9 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
         connection.SetDeadline(time.Now().Add(30 * time.Microsecond))
-//      connection.Write([]byte("test"))
-//      var buf []byte
-//      if _, err := connection.Read(buf[:]); err != nil {
-        
-        if _, err := connection.Write([]byte("a")); err != nil {
-//          if isTimout(err){
-//              fmt.Println("TIMEOUT")
-//          }
-//          fmt.Println(err.Error())
+        connection.SetKeepAlive(true)
+        connection.SetKeepAlivePeriod(10*time.Millisecond)
+        if _, err := connection.Write([]byte("hei")); err != nil {
             time.Sleep(time.Second)
             if opErr, ok := err.(*net.OpError); ok{
                 if opErr.Timeout() {
@@ -105,24 +97,14 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
                     fmt.Println("TEMPORARY")
                 }
             }
-//          if err == io.EINVAL {
-//              fmt.Println("EINVAL")
-//          }
             if err == io.EOF {
                 fmt.Println("EOF")
             }
             connection.Close()
             connect_c <- Com{Address:connection,Connect:false}
-//          error_c <- err.Error()
             return
         }
-//      if err != nil {
-//          connection.Close()
-//          connect_c <- Com{Address:connection,Connect:false}
-//          error_c <- err.Error()
-//          break
-//      }
-        time.Sleep(1*time.Second)
+        time.Sleep(500*time.Millisecond)
     }
 }
 func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
@@ -156,16 +138,17 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
         newConn_c <- newConn
     }
 }
-/*
-func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
+
+func Receiver(conn *net.TCPConn, receivedMsgs_c chan string){
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
+        conn.SetDeadline(time.Now().Add(time.Second))
         if err != nil {
-            fmt.Println(err)
+            fmt.Println("READ ERR: ",err)
             return
         }
-        receivedMsgs_c <- bit
+        receivedMsgs_c <- string(bit)
     }
-}*/
+}
 

@@ -182,30 +182,50 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 
             }
             case received := <- receivedmessages_c: {
-//              fmt.Println("Received message: ", received)
 
                 if received.Order.Floor>0{
                     if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
                         elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
                     }
-                    if received.Order.InOut==0{
-                        received.Order.InOut=1
-                        for i, b := range orderlist {
-                            if b == received.Order {
-//                              fmt.Println("her er i: ",i)
-                                orderlist = append(orderlist[:i], orderlist[i+1:]...)
+                    if received.Order. Direction==elevator.BUTTON_COMMAND{
+                        fmt.Println("Received message: ", received)
+                        if received.Order.InOut==0{
+                            received.Order.InOut=1
+                            for i, b := range insidelist {
+                                if b == received.Order {
+                                    insidelist = append(insidelist[:i], insidelist[i+1:]...)
+                                }
+                            }
+                        }else{
+                            AddedBefore:=false
+                            for _, b := range insidelist {
+                                if b == received.Order {
+                                    AddedBefore = true
+                                }
+                            }
+                            if !AddedBefore{
+                                insidelist=append(insidelist, received.Order)
                             }
                         }
-                    }else if received.Order.Direction==elevator.BUTTON_COMMAND{
-                        insidelist=append(insidelist, received.Order)
-                    }else{
-                        for _, b := range orderlist {
-                            if b == received.Order {
-                                continue OrderAlreadyadded
+                    }else{  
+                        if received.Order.InOut==0{
+                            received.Order.InOut=1
+                            for i, b := range orderlist {
+                                if b == received.Order {
+                                    orderlist = append(orderlist[:i], orderlist[i+1:]...)
+                                }
+                            }
+                        }else{
+                            AddedBefore:=false
+                            for _, b := range orderlist {
+                                if b == received.Order {
+                                    AddedBefore = true
+                                }
+                            }
+                            if !AddedBefore{
+                                orderlist=append(orderlist, received.Order)
                             }
                         }
-                        orderlist=append(orderlist, received.Order)
-                        OrderAlreadyadded:
 //                      fmt.Println(orderlist)
                     }
                 }            

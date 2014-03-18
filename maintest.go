@@ -202,6 +202,8 @@ func main() {
 				elevator.Elev_set_door_open_lamp(1)
 				for _, order := range takeorders{
 					order.InOut=0
+						Println("Taking orders: ", order)
+						time.Sleep(10 * time.Millisecond)
 					networking.Neworder(generatedmessages_c, order)
 				}
 				elevator.Elev_set_speed(0)
@@ -215,8 +217,10 @@ func main() {
 //		Println(elevator.Address)
 		statuslist := networking.GetStatusList()
 		orderlist := networking.GetOrderList()
+		insidelist := networking.GetInsideList()
 		Println("Statuslist: ", statuslist)
 		Println("Ordreliste: ", orderlist)
+		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)
