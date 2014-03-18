@@ -17,7 +17,7 @@ var ordersinside = make([]int,0)
 
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statelist := networking.GetStatusList()
-	orderlist := networking.GetOrderList()
+	ordlist := networking.GetOrderList()
 //	Println("statuslist: ", statuslist)
 //	Println("orderlist: ", orderlist)
 //	Println("Connections: ", connections)
