@@ -155,7 +155,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Con) {
 
 func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
     var connections []*net.TCPConn
-    listenaddr, _ := net.ResolveTCPAddr("tcp", "6969")
+    listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp", listenaddr)
     connections_c := make(chan Con, 15)
     receivedmessages_c := make(chan Networkmessage,15)
@@ -167,6 +167,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
         select {
             case connection := <- connections_c: {
                 if connection.Connect {
+                    fmt.Println("IAMDIALATING")
                     connections = append(connections, connection.Address)
                     go Receiver2(connection.Address, receivedmessages_c)
 //                  go IsAlive(newconnection, error_c, connect_c)
