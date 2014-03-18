@@ -23,31 +23,31 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 //	Println("Connections: ", connections)
 //	Println("MYIP: ", myip)
 	orderloop:
-	for _,order := range orderlist{
+	for _,order := range ordlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
-				if status,ok := statuslist[elevator]; ok{
-					Println("Checking:  ", statuslist[elevator], "take order: ", order)
+				if status,ok := statelist[elevator]; ok{
+					Println("Checking:  ", statelist[elevator], "take order: ", order)
 					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
 //						Println("Elevator ", statuslist[elevator], "taking order: ", order)
-						if statuslist[elevator].Source==myip{
+						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							delete(statuslist,elevator)
+							delete(statelist,elevator)
 							continue orderloop
 						}
 					}
 				}
 			}
 			for elevator,_ :=range connections{
-				if status,ok := statuslist[elevator]; ok{
-					Println("Checking:  ", statuslist[elevator], "take order: ", order)
+				if status,ok := statelist[elevator]; ok{
+					Println("Checking:  ", statelist[elevator], "take order: ", order)
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
 //						Println("Elevator ", statuslist[elevator], "taking order: ", order)
-						if statuslist[elevator].Source==myip{
+						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							delete(statuslist,elevator)
+							delete(statelist,elevator)
 							continue orderloop
 						}
 					}
