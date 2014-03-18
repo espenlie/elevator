@@ -23,7 +23,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
-					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
+					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
 						if statuslist[elevator].Source==myip{
 							return order
 						}else{
@@ -81,6 +81,7 @@ func Addinsideorders(){
 
 func nextstate(myip string, connections map[string]bool, mystate string) (string, networking.Order){
 	next := nextorder(myip, connections)
+	Println("My next order: ", next)
 	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){
 		return "DOOR_OPEN", next
 	}else if next.Floor>elevator.Current_floor(){
@@ -134,6 +135,7 @@ func main() {
 	mystatus.Source=myip
 	mystatus.State=state
 	mystatus.LastFloor=elevator.Current_floor()
+	time.Sleep(1500 * time.Millisecond)
 	for{
 //		Println("State: ", state)
 		switch state {
@@ -175,13 +177,14 @@ func main() {
 //		Println(orderlist)
 //		Println(state)
 //		Println(nextorder(myip))
-		time.Sleep(5 * time.Millisecond)
+		time.Sleep(10 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
 		networking.NewStatus(mystatus, generatedMsgs_c)
+		time.Sleep(10 * time.Millisecond)
 //		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 	}
 }

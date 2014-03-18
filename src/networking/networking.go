@@ -19,7 +19,7 @@ func GetOrderList() []Order {
     return orderlist
 }
 func PackNetworkMessage(message Networkmessage) []byte {
-    fmt.Println(message)
+//  fmt.Println("PACKING: ", message)
 	send, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Could not pack message: ",err.Error())
@@ -29,6 +29,7 @@ func PackNetworkMessage(message Networkmessage) []byte {
 
 func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
 	var message Networkmessage
+//  fmt.Println("UNPACKING: ", string(pack))
 	err := json.Unmarshal(pack[:bit], &message)
 	if err != nil {
 		fmt.Println("Could not unpack message: ", err.Error())
@@ -135,6 +136,7 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
             newConn.SetLinger(1)
 			connMap[newConn.LocalAddr().String()] = newConn
 		case sendMsg := <- generatedMsgs_c:{
+//          fmt.Println("Sendt: ", sendMsg)
             packed := make([]byte,1024)
             packed = PackNetworkMessage(sendMsg)
 			for _,connection := range connMap{
@@ -147,9 +149,9 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
 			}
 		}
         case in := <-receivedMsgs_c:
-//          fmt.Println(in)
+//          fmt.Println("Motatt: ", in)
             if in.Order.Floor>0{
-                elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut) 
+                elevator.Elev_set_button_lamp(in.Order.Direction, in.Order.Floor, in.Order.InOut)
                 if in.Order.InOut==0{
                     in.Order.InOut=1
                     for i, b := range orderlist {
