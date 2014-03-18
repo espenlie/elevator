@@ -60,7 +60,6 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
         for floor, buttons := range elevator.Button_channel_matrix{
             for button, channel:= range buttons{
                 if drivers.ReadBit(channel){
-                    fmt.Println("JEG SER AT DU TRYKKER!!")
                     if button == 0 {
                         butt = elevator.BUTTON_CALL_UP
                     }else if button == 1 {
@@ -72,7 +71,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
                 }
             }
         }
-	time.Sleep(50 * time.Millisecond)
+	time.Sleep(10 * time.Millisecond)
     }
 }
 
@@ -101,7 +100,7 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
             raddr, err := net.ResolveTCPAddr("tcp",elevator.Address+port)
             dialConn, err := net.DialTCP("tcp", nil, raddr)
             if err != nil {
-                fmt.Println("Dial ERROR: ", err)
+//              fmt.Println("Dial ERROR: ", err)
             }else{
                 connect_c <- Con{Address:dialConn, Connect:true}
                 fmt.Println("Adding: ",dialConn)
@@ -126,7 +125,7 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
     for {
         bit, err := conn.Read(buf[0:])
         if err != nil {
-            fmt.Println("ReceiverError: ", err)
+            fmt.Println(err)
             return
         }
         unpacked := UnpackNetworkMessage(buf,bit)
@@ -183,6 +182,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 
             }
             case received := <- receivedmessages_c: {
+//              fmt.Println("Received message: ", received)
 
                 if received.Order.Floor>0{
                     if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
@@ -201,27 +201,36 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                         orderlist=append(orderlist, received.Order)
 //                      fmt.Println(orderlist)
                     }
+                }            
+                if received.Status.Source != "" {
+//                  fmt.Println("Statuslist before updating: ", statuslist)
+//                  fmt.Println("Adding: ", received.Status)
+                    statuslist[received.Status.Source] = received.Status
+//                  fmt.Println("Statuslist after updating: ", statuslist)
+//                  if in.Status.State == "INIT" && in.Status.Source != misc.GetLocalIP(){
+//                      go SendStatuslist(generatedMsgs_c)
+//                  }
                 }
             }
             case message := <- generatedmessages_c: {
-                fmt.Println("Message: ", message)
+//              fmt.Println("Message: ", message)
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
-                    connection.SetDeadline(time.Now().Add(50 * time.Millisecond))
-                    _ ,err := connection.Write(pack)
-                    time.Sleep(100 * time.Millisecond)
-                    if err != nil{    
-                        error_c <- err.Error()
-                        connections_c <- Con{Address: connection, Connect: false}
-                    } 
+//                  connection.SetDeadline(time.Now().Add(50 * time.Millisecond))
+                    connection.Write(pack)
+//                  time.Sleep(100 * time.Millisecond)
+//                  if err != nil{    
+//                      error_c <- err.Error()
+//                      connections_c <- Con{Address: connection, Connect: false}
+//                  } 
                 }
             }
             case err := <- error_c: {
                 fmt.Println("ERROR: "+err)
             }
             default: {
-                time.Sleep(time.Second)
+//              time.Sleep(time.Second)
             }
 
         }
@@ -241,25 +250,33 @@ func SendStatuslist(generatedMsgs_c chan Networkmessage) {
 }
 
 func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
+//  fmt.Println("statuslist: ", statuslist)
+//  fmt.Println("Newstatus: ", status)
     for _, oldstat := range statuslist {
         if oldstat == status {
             return false
         }
     }
+//  fmt.Println("Sending status")
     generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
     return true
 }
 
 
 func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
-    fmt.Println("Orderlist: ", orderlist)
-    fmt.Println("New order: ", order)
+//  fmt.Println("Orderlist: ",orderlist)
+//  fmt.Println("Order: ", order)
     for _, b := range orderlist {
         if b == order {
             return false
         }
     }
-    fmt.Println("Sender orde!!")
-    generatedMsgs_c <- GenerateMessage(order.Direction,order.Floor,order.InOut,"",-1,false,"")
+    for _, a := range insidelist {
+        if a == order {
+            return false
+        }
+    }
+//  fmt.Println("Sending order")
+    generatedMsgs_c <- Networkmessage{Order:order, Status: Status{"",-1,false,""}}
     return true
 }

@@ -15,8 +15,8 @@ import (
 
 func numgo(){
 	for{
-	Println(runtime.NumGoroutine())
-	time.Sleep(time.Second)
+	Println("Goroutines: ", runtime.NumGoroutine())
+	time.Sleep(10*time.Second)
 	}
 }
 
@@ -144,7 +144,7 @@ func main() {
 	conf := misc.LoadConfig("/home/student/LL/elevator/config/conf.json")
 
 //  connections         := make(map[string]bool)
-    generatedmessages_c := make(chan networking.Networkmessage, 10)
+    generatedmessages_c := make(chan networking.Networkmessage, 15)
 
 //  listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
 //  listenConn, _ := ListenTCP("tcp", listenAddr)
@@ -181,8 +181,7 @@ func main() {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
-				Println("OMGGGGG")
-				networking.NewStatus(mystatus, generatedmessages_c)
+//				networking.NewStatus(mystatus, generatedmessages_c)
 				elevator.Elev_set_speed(-300)
 				state , takeorders = nextstate(myip, conf.Elevators, mystatus.State)
 			}
@@ -219,14 +218,13 @@ func main() {
 //		Println(orderlist)
 //		Println(order)
 //		Println(state)
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 //		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
 		networking.NewStatus(mystatus, generatedmessages_c)
-		time.Sleep(10 * time.Millisecond)
 //		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 	}
 }
