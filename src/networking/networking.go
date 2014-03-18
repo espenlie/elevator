@@ -166,8 +166,10 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
                 }
             }
             if in.Status.Source != "" {
-//              fmt.Println(in.Status)
+                fmt.Println("Statuslist before updating: ", statuslist)
+                fmt.Println("Adding: ", in.Status)
                 statuslist[in.Status.Source] = in.Status
+                fmt.Println("Statuslist after updating: ", statuslist)
                 if in.Status.State == "INIT" && in.Status.Source != misc.GetLocalIP(){
                     go SendStatuslist(generatedMsgs_c)
                 }

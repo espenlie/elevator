@@ -18,10 +18,10 @@ var ordersinside = make([]int,0)
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
-	Println("statuslist: ", statuslist)
-	Println("orderlist: ", orderlist)
-	Println("Connections: ", connections)
-	Println("MYIP: ", myip)
+//	Println("statuslist: ", statuslist)
+//	Println("orderlist: ", orderlist)
+//	Println("Connections: ", connections)
+//	Println("MYIP: ", myip)
 	orderloop:
 	for _,order := range orderlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
@@ -29,7 +29,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 				if status,ok := statuslist[elevator]; ok{
 					Println("Checking:  ", statuslist[elevator], "take order: ", order)
 					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
-						Println("Elevator ", statuslist[elevator], "taking order: ", order)
+//						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statuslist[elevator].Source==myip{
 							return order
 						}else{
@@ -41,8 +41,9 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 			}
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
+					Println("Checking:  ", statuslist[elevator], "take order: ", order)
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
-						Println("Elevator ", statuslist[elevator], "taking order: ", order)
+//						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statuslist[elevator].Source==myip{
 							return order
 						}else{
