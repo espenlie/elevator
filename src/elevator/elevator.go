@@ -25,7 +25,7 @@ var Lamp_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {drivers.LIGHT_UP4, drivers.LIGHT_DOWN4, drivers.LIGHT_COMMAND4},
 }
 
-var button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
+var Button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
     {drivers.FLOOR_UP1, drivers.FLOOR_DOWN1, drivers.FLOOR_COMMAND1},
     {drivers.FLOOR_UP2, drivers.FLOOR_DOWN2, drivers.FLOOR_COMMAND2},
     {drivers.FLOOR_UP3, drivers.FLOOR_DOWN3, drivers.FLOOR_COMMAND3},
@@ -121,6 +121,14 @@ func Elev_set_stop_lamp(value int){
         drivers.SetBit(drivers.LIGHT_STOP)
     }else{
         drivers.ClearBit(drivers.LIGHT_STOP)}
+}
+
+func Elev_get_button_signal(button Elev_button, floor int)int{
+    if (drivers.ReadBit(Button_channel_matrix[floor][button])){
+        return 1
+    }else{
+        return 0
+    }
 }
 
 

@@ -11,6 +11,7 @@ import (
 	"elevator"
 )
 
+var ordersinside = make([]int,0)
 
 
 
@@ -49,14 +50,43 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
+func ConflictingOrders(mystatus networking.Status, ordersinside []int)bool{
+	for _, b := range ordersinside {
+		if (mystatus.LastFloor<=b && mystatus.State=="UP") || (mystatus.LastFloor>=b && mystatus.State=="DOWN"){
+			return true
+		}
+	}
+	return false
+}
+
+func Addinsideorders(){
+	for{
+		for i := 0; i < elevator.N_FLOORS; i++ {
+			if (elevator.Elev_get_button_signal(elevator.BUTTON_COMMAND, i) == 1){
+			    for _, b := range ordersinside {
+					if b == i {
+						break
+					}else{
+						elevator.Elev_set_button_lamp(elevator.BUTTON_COMMAND, i, 1)
+						ordersinside=append(ordersinside, i)
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+
 func nextstate(myip string, connections map[string]bool, mystate string) (string, networking.Order){
 	next := nextorder(myip, connections)
-	if next.Floor>elevator.Current_floor(){
+	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){
+		return "DOOR_OPEN", next
+	}else if next.Floor>elevator.Current_floor(){
 		return "UP", next
 	}else if (next.Floor<elevator.Current_floor() && next.Floor!=0){
 		return "DOWN", next
-	}else if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){
-		return "DOOR_OPEN", next
 	}else if elevator.Elev_at_floor(){
 		return "IDLE", next
 	}else{
@@ -145,11 +175,12 @@ func main() {
 //		Println(orderlist)
 //		Println(state)
 //		Println(nextorder(myip))
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
+		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
 		networking.NewStatus(mystatus, generatedMsgs_c)
 //		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 	}
