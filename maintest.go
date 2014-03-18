@@ -118,10 +118,11 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 			return "DOOR_OPEN", stop
 		}
 	}
-//	}else if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
-//		Println("DENNE KAN IKKE SLETTES!")
-//		return "DOOR_OPEN", next												//Behoves denne?
 	next := Nextorder(myip, elevators)
+	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
+		Println("DENNE KAN IKKE SLETTES!")
+		return "DOOR_OPEN", next												//Behoves denne?
+	}
 //	Println("My next order: ", next)
 	if next.Floor>elevator.Current_floor(){
 		return "UP", nil
@@ -214,8 +215,8 @@ func main() {
 //		Println(elevator.Address)
 		statuslist := networking.GetStatusList()
 		orderlist := networking.GetOrderList()
-		Println(statuslist)
-		Println(orderlist)
+		Println("Statuslist: ", statuslist)
+		Println("Ordreliste: ", orderlist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)

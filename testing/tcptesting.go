@@ -34,7 +34,7 @@ func main() {
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":6666")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c, connect_c)
-    go Dialer(connect_c,":5555", connections_c)
+    go Dialer(connect_c,":6666", connections_c)
     for {
         select {
             case newconnection := <- connections_c  :{
