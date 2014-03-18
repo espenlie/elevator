@@ -89,15 +89,21 @@ func Dialer2(connections []*net.TCPConn, connect_c chan Con, port string, elevat
     for{
         elevatorloop:
 	    for _,elevator := range elevators{
+            fmt.Println("Elevator: ", elevator.Address)
+            fmt.Println("Connections: ", connections)
+
             for _, connection := range connections {
+                fmt.Println(connection)
+                fmt.Println(connection.RemoteAddr().String())
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
+                    fmt.Println("Already connected")
                     continue elevatorloop
                 }
             }
             raddr, err := net.ResolveTCPAddr("tcp",elevator.Address+port)
             dialConn, err := net.DialTCP("tcp", nil, raddr)
             if err != nil {
-                fmt.Println(err)
+                fmt.Println("Dial ERROR: ", err)
             }else{
                 connect_c <- Con{Address:dialConn,Connect:true}
                 fmt.Println("Adding: ",dialConn)
@@ -111,7 +117,7 @@ func Listener2(conn *net.TCPListener, connect_c chan Con){
     for {
         newConn, err := conn.AcceptTCP()
         if err != nil {
-            fmt.Println(err)
+            fmt.Println("AcceptERROR: ", err)
         }
         connect_c <- Con{Address:newConn, Connect:true}
     }
@@ -122,7 +128,7 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
     for {
         bit, err := conn.Read(buf[0:])
         if err != nil {
-            fmt.Println(err)
+            fmt.Println("ReceiverError: ", err)
             return
         }
         unpacked := UnpackNetworkMessage(buf,bit)
@@ -154,7 +160,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Con) {
 }
 
 func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
-    var connections []*net.TCPConn
+    connections := make([]*net.TCPConn, 0)
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp", listenaddr)
     connections_c := make(chan Con, 15)
@@ -167,8 +173,8 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
         select {
             case connection := <- connections_c: {
                 if connection.Connect {
-                    fmt.Println("IAMDIALATING")
                     connections = append(connections, connection.Address)
+                    fmt.Println(connections)
                     go Receiver2(connection.Address, receivedmessages_c)
 //                  go IsAlive(newconnection, error_c, connect_c)
                 }else{

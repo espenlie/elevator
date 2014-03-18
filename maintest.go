@@ -158,7 +158,7 @@ func main() {
 //      }
 
 	state := "INIT"
-	var order []networking.Order
+//	var order []networking.Order
 //	var floor int
 	var mystatus networking.Status
 	var takeorders []networking.Order
@@ -198,7 +198,7 @@ func main() {
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
 				elevator.Elev_set_door_open_lamp(0)
-				state , order = nextstate(myip, conf.Elevators, mystatus.State)
+				state , _ = nextstate(myip, conf.Elevators, mystatus.State)
 			}
 			case "ERROR":{
 			}
@@ -208,8 +208,8 @@ func main() {
 //		orderlist := networking.GetOrderList()
 //		Println(statuslist)
 //		Println(orderlist)
-		Println(order)
-		Println(state)
+//		Println(order)
+//		Println(state)
 		time.Sleep(10 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
