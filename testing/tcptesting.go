@@ -120,6 +120,7 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 		for elevator,status := range elevator{
 			if !status {
                 raddr, err := net.ResolveTCPAddr("tcp",elevator+port)
+                fmt.Println("Dialing: "+raddr.String())
 				dialConn, err := net.DialTCP("tcp", nil, raddr)
 				if err != nil {
 //					fmt.Println(err)
