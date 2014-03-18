@@ -13,7 +13,11 @@ import (
 
 
 func nextorder(myip string, connections map[string]bool)networking.Order{
-	statelist := networking.GetStatusList()
+	var statelist = make(map[string]networking.Status)
+	statuslist := networking.GetStatusList()
+	for host, stat := range statuslist {
+		statelist[host]=stat
+    }
 	ordlist := networking.GetOrderList()
 //	Println("statuslist: ", statuslist)
 //	Println("orderlist: ", orderlist)
@@ -30,9 +34,8 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							Println("Removing: ", elevator)
-							delete(connections, elevator)
-//							delete(statelist,elevator)
+//							delete(connections, elevator)
+							delete(statelist,elevator)
 							continue orderloop
 						}
 					}
@@ -46,9 +49,8 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							Println("Removing: ", elevator)
-							delete(connections, elevator)
-//							delete(statelist,elevator)
+//							delete(connections, elevator)
+							delete(statelist,elevator)
 							continue orderloop
 						}
 					}
@@ -152,6 +154,11 @@ func main() {
 			}
 			case "ERROR":{
 			}
+		}    
+		connections         := make(map[string]bool)
+		for _,elevator :=range conf.Elevators{
+//		Println(elevator.Address)
+			connections[elevator.Address]=false
 		}
 //		statuslist := networking.GetStatusList()
 //		orderlist := networking.GetOrderList()
