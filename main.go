@@ -27,10 +27,10 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
+					Println("Checking:  ", statuslist[elevator], "take order: ", order)
 					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
 						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statuslist[elevator].Source==myip{
-							Println("Elevator ", statuslist[elevator], "taking order: ", order)
 							return order
 						}else{
 							delete(statuslist,elevator)
