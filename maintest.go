@@ -8,10 +8,17 @@ import (
     "time"
     "drivers"
 	"misc"
+	"runtime"
 	"networking"
 	"elevator"
 )
 
+func numgo(){
+	for{
+	Println(runtime.NumGoroutine())
+	time.Sleep(time.Second)
+	}
+}
 
 func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	var statelist = make(map[string]networking.Status)
@@ -128,6 +135,7 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	myip := misc.GetLocalIP()
 	Println(myip)
@@ -146,6 +154,7 @@ func main() {
 //  dialConn_c      := make(chan *TCPConn, 10)
 
     go networking.NetworkWrapper(conf, myip, generatedmessages_c)
+	go numgo()
 //	statuslist[myip]=networking.Status{State:"UP",LastFloor:1,Source:myip}
 //	takeorder(orderlist, statuslist, myip)
 //	go networking.Listener(listenConn, newConn_c)

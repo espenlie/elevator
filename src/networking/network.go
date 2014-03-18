@@ -60,6 +60,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
         for floor, buttons := range elevator.Button_channel_matrix{
             for button, channel:= range buttons{
                 if drivers.ReadBit(channel){
+                    fmt.Println("JEG SER AT DU TRYKKER!!")
                     if button == 0 {
                         butt = elevator.BUTTON_CALL_UP
                     }else if button == 1 {
@@ -90,14 +91,10 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     for{
         elevatorloop:
 	    for _,elevator := range elevators{
-            fmt.Println("Elevator: ", elevator.Address)
-            fmt.Println("Connections: ", connections)
-
             for _, connection := range connections {
-                fmt.Println(connection)
-                fmt.Println(connection.RemoteAddr().String())
+//              fmt.Println(connection)
+//              fmt.Println(connection.RemoteAddr().String())
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
-                    fmt.Println("Already connected")
                     continue elevatorloop
                 }
             }
@@ -174,7 +171,6 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
             case connection := <- connections_c: {
                 if connection.Connect {
                     connections = append(connections, connection.Address)
-                    fmt.Println(connections)
                     go Receiver2(connection.Address, receivedmessages_c)
 //                  go IsAlive(newconnection, error_c, connect_c)
                 }else{
@@ -187,6 +183,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 
             }
             case received := <- receivedmessages_c: {
+
                 if received.Order.Floor>0{
                     if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
                         elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
@@ -207,12 +204,14 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                 }
             }
             case message := <- generatedmessages_c: {
+                fmt.Println("Message: ", message)
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
                     connection.SetDeadline(time.Now().Add(50 * time.Millisecond))
-                    if _ ,err := connection.Write(pack); err != nil {
-                        time.Sleep(100 * time.Millisecond)
+                    _ ,err := connection.Write(pack)
+                    time.Sleep(100 * time.Millisecond)
+                    if err != nil{    
                         error_c <- err.Error()
                         connections_c <- Con{Address: connection, Connect: false}
                     } 
@@ -253,11 +252,14 @@ func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
 
 
 func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
+    fmt.Println("Orderlist: ", orderlist)
+    fmt.Println("New order: ", order)
     for _, b := range orderlist {
         if b == order {
             return false
         }
     }
+    fmt.Println("Sender orde!!")
     generatedMsgs_c <- GenerateMessage(order.Direction,order.Floor,order.InOut,"",-1,false,"")
     return true
 }
