@@ -192,13 +192,20 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                         received.Order.InOut=1
                         for i, b := range orderlist {
                             if b == received.Order {
+//                              fmt.Println("her er i: ",i)
                                 orderlist = append(orderlist[:i], orderlist[i+1:]...)
                             }
                         }
                     }else if received.Order.Direction==elevator.BUTTON_COMMAND{
                         insidelist=append(insidelist, received.Order)
                     }else{
+                        for _, b := range orderlist {
+                            if b == received.Order {
+                                continue OrderAlreadyadded
+                            }
+                        }
                         orderlist=append(orderlist, received.Order)
+                        OrderAlreadyadded:
 //                      fmt.Println(orderlist)
                     }
                 }            

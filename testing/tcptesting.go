@@ -50,7 +50,8 @@ func main() {
                 fmt.Println("Errormessage:"+errorm)
             }
             case lost := <- connect_c :{
-                elevator[strings.Split(lost.Address.RemoteAddr().String(),":")[0]]=lost.Connect
+                index := strings.Split(lost.Address.RemoteAddr().String(),":")[0]
+                elevator[index]=lost.Connect
                 if !lost.Connect{
                     connections, _ = RemoveConnection(connections, lost.Address)
 //                  if err != nil {
@@ -132,7 +133,7 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
                 fmt.Println("Dialing: "+raddr.String())
 				dialConn, err := net.DialTCP("tcp", nil, raddr)
 				if err != nil {
-//					fmt.Println(err)
+					fmt.Println(err)
 				}else{
                     connect_c <- Com{Address:dialConn,Connect:true}
                     fmt.Println("Adding: ",dialConn)
@@ -149,9 +150,8 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
     for {
         newConn, err := conn.AcceptTCP()
         if err != nil {
-            fmt.Println(err)
+            fmt.Println("Listen error: ",err)
         }
-        fmt.Println("New shit")
         connect_c <- Com{Address:newConn, Connect:true}
         newConn_c <- newConn
     }
