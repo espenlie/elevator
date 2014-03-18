@@ -7,7 +7,6 @@ import (
     "misc"
 )
 const N_FLOORS = 4
-const N_BUTTONS = 3
 const STOP_REVERSE_TIME = 10 // Antall Millisecond i revers ved stop
 
 type Elev_button int
@@ -33,7 +32,6 @@ var Button_channel_matrix = [N_FLOORS][N_BUTTONS]int{
 }
 
 func Elev_set_speed(speed int){
-    // Hvis speed blir satt til 0, vil neste if-setning hjelpe oss til å stoppe heisen effektivt
     if (speed == 0){
         if(drivers.ReadBit(drivers.MOTORDIR)){
             drivers.ClearBit(drivers.MOTORDIR)

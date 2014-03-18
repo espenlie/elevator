@@ -15,14 +15,16 @@ type Elevator struct {
 
 type Config struct {
 	Elevators			[]Elevator
-	Default_Dial_Port	string
-	Default_Listen_Port	string
+	DefaultDialPort		string
+	DefaultListenPort	string
+	Timeout				int
+	NumFloors			int
+	StopReverseTime		int	
 }
-
-var config Config
 
 func LoadConfig(filename string) Config {
 	file, err := ioutil.ReadFile(filename)
+	var config Config
 	if err != nil {
 		log.Println(err)
 	}
