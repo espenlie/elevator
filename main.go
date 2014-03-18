@@ -21,6 +21,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	Println("statuslist: ", statuslist)
 	Println("orderlist: ", orderlist)
 	Println("Connections: ", connections)
+	Println("MYIP: ", myip)
 	orderloop:
 	for _,order := range orderlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
