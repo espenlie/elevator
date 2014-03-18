@@ -19,9 +19,10 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 		statelist[host]=status
     }
 	ordlist := networking.GetOrderList()
-//	Println("orderlist: ", orderlist)
-//	Println("Connections: ", connections)
-//	Println("MYIP: ", myip)
+	Println("orderlist: ", orderlist)
+	Println("Statelist: ", statelist)
+	Println("Connections: ", connections)
+	Println("MYIP: ", myip)
 	orderloop:
 	for _,order := range ordlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
