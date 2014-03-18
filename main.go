@@ -18,6 +18,9 @@ var ordersinside = make([]int,0)
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
+	Println("statuslist: ", statuslist)
+	Println("orderlist: ", orderlist)
+	Println("Connections: ", connections)
 	orderloop:
 	for _,order := range orderlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
