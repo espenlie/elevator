@@ -18,6 +18,7 @@ var elevators = make(map[string]bool)
 var orderlist = make([]Order, 0)
 var insidelist = make([]Order, 0)
 var statuslist = make(map[string]Status)
+var connections =  make([]*net.TCPConn, 0)
 
 func GetStatusList() map[string]Status {
     return statuslist
@@ -105,7 +106,7 @@ func Dialer2(connections []*net.TCPConn, connect_c chan Con, port string, elevat
             if err != nil {
                 fmt.Println("Dial ERROR: ", err)
             }else{
-                connect_c <- Con{Address:dialConn,Connect:true}
+                connect_c <- Con{Address:dialConn, Connect:true}
                 fmt.Println("Adding: ",dialConn)
             }
 		}
@@ -160,7 +161,6 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Con) {
 }
 
 func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
-    connections := make([]*net.TCPConn, 0)
     listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
     listenconn, _ := net.ListenTCP("tcp", listenaddr)
     connections_c := make(chan Con, 15)
