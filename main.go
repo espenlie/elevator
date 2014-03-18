@@ -16,7 +16,7 @@ var ordersinside = make([]int,0)
 
 
 func nextorder(myip string, connections map[string]bool)networking.Order{
-	statuslist := networking.GetStatusList()
+	statelist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
 //	Println("statuslist: ", statuslist)
 //	Println("orderlist: ", orderlist)
@@ -150,6 +150,7 @@ func main() {
 			case "INIT":{
 				drivers.IoInit()
 				elevator.Elev_init()
+				Println("OMGGGGG")
 				networking.NewStatus(mystatus, generatedMsgs_c)
 				elevator.Elev_set_speed(-300)
 				state , order = nextstate(myip, connections, mystatus.State)
