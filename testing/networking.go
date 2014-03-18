@@ -5,95 +5,36 @@ import (
     "fmt"
     "net"
     "time"
-    "drivers"
+//  "drivers"
     "encoding/json"
     "misc"
 )
-var orderlist = make([]Order,0)
-var statuslist = make(map[string]Status)
-
-func GetStatusList() map[string]Status {
-    return statuslist
-}
-func GetOrderList() []Order {
-    return orderlist
-}
-func PackNetworkMessage(message Networkmessage) []byte {
-//  fmt.Println("PACKING: ", message)
-	send, err := json.Marshal(message)
-	if err != nil {
-		fmt.Println("Could not pack message: ",err.Error())
-	}
-	return send
-}
-
-func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
-	var message Networkmessage
-//  fmt.Println("UNPACKING: ", string(pack))
-	err := json.Unmarshal(pack[:bit], &message)
-	if err != nil {
-		fmt.Println("Could not unpack message: ", err.Error())
-	}
-	return message
-}
-
-func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state string, lastfloor int, inhouse bool, source string) Networkmessage {
-	s := Status{State: state, LastFloor: lastfloor, Inhouse: inhouse,Source:source}
-	o := Order{Direction:dir, Floor:floor, InOut:inout}
-	message := Networkmessage{Order:o,Status:s}
-	return message
-}
-
-func SendStatuslist(generatedMsgs_c chan Networkmessage) {
-    myip := misc.GetLocalIP()
-    mystatus := statuslist[myip]
-    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
-}
-
-func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
-    for _, oldstat := range statuslist {
-        if oldstat == status {
-            return false
-        }
-    }
-    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
-    return true
-}
 
 
-func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
-    for _, b := range orderlist {
-        if b == order {
-            return false
-        }
-    }
-    generatedMsgs_c <- GenerateMessage(order.Direction,order.Floor,order.InOut,"",-1,false,"")
-    return true
-}
 
-func Orderdistr(generatedMsgs_c chan Networkmessage){
-    for{
-        if drivers.ReadBit(drivers.FLOOR_UP1){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:1, InOut:1})
-        }
-        if drivers.ReadBit(drivers.FLOOR_UP2){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:2, InOut:1})
-        }
-        if drivers.ReadBit(drivers.FLOOR_UP3){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:3, InOut:1})
-        }
-        if drivers.ReadBit(drivers.FLOOR_DOWN2){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:2, InOut:1})
-        }
-        if drivers.ReadBit(drivers.FLOOR_DOWN3){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:3, InOut:1})
-        }
-        if drivers.ReadBit(drivers.FLOOR_DOWN4){
-            Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
-        }
-	time.Sleep(50 * time.Millisecond)
-    }
-}
+//func Orderdistr(generatedMsgs_c chan Networkmessage){
+//  for{
+//      if drivers.ReadBit(drivers.FLOOR_UP1){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:1, InOut:1})
+//      }
+//      if drivers.ReadBit(drivers.FLOOR_UP2){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:2, InOut:1})
+//      }
+//      if drivers.ReadBit(drivers.FLOOR_UP3){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_UP, Floor:3, InOut:1})
+//      }
+//      if drivers.ReadBit(drivers.FLOOR_DOWN2){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:2, InOut:1})
+//      }
+//      if drivers.ReadBit(drivers.FLOOR_DOWN3){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:3, InOut:1})
+//      }
+//      if drivers.ReadBit(drivers.FLOOR_DOWN4){
+//          Neworder(generatedMsgs_c, Order{Direction:elevator.BUTTON_CALL_DOWN, Floor:4, InOut:1})
+//      }
+//	time.Sleep(50 * time.Millisecond)
+//  }
+//}
 
 //Receives messages from a connections and adds it to a channel
 func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){

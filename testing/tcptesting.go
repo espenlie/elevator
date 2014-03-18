@@ -23,7 +23,7 @@ func main() {
 //  elevator["193.35.52.194"]=false
 //  elevator["193.35.52.234"]=false
     elevator["129.241.187.153"]=false
-    elevator["129.241.187.140"]=false
+    elevator["129.241.187.147"]=false
     elevator["129.241.187.161"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
@@ -136,6 +136,7 @@ func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 				}else{
                     connect_c <- Com{Address:dialConn,Connect:true}
                     fmt.Println("Adding: ",dialConn)
+                    fmt.Println(dialConn.RemoteAddr().String())
 					dialconn_c <-dialConn
 				}
 			}

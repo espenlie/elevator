@@ -1,8 +1,8 @@
 {
     "Elevators" :
     [
-            { "Address":"129.241.187.140"},
-            { "Address":"129.241.187.153"}
+            { "Address":"129.241.187.147"},
+            { "Address":"129.241.187.148"}
     ],
     "DefaultDialPort"     :":6969",
     "DefaultListenPort"   :":1337",

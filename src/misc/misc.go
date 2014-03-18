@@ -22,9 +22,10 @@ type Config struct {
 	StopReverseTime		int	
 }
 
+var config Config
+
 func LoadConfig(filename string) Config {
 	file, err := ioutil.ReadFile(filename)
-	var config Config
 	if err != nil {
 		log.Println(err)
 	}

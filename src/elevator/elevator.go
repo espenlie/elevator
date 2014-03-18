@@ -7,6 +7,7 @@ import (
     "misc"
 )
 const N_FLOORS = 4
+const N_BUTTONS = 4
 const STOP_REVERSE_TIME = 10 // Antall Millisecond i revers ved stop
 
 type Elev_button int

@@ -1,28 +1,72 @@
 package networking
 
 import (
+    "misc"
     "net"
     "fmt"
     "time"
-//  "strings"
+    "strings"
     "errors"
+    "encoding/json"
     "io"
+    "elevator"
 //  "os"
+    "drivers"
 
 )
 var elevators = make(map[string]bool)
+var orderlist = make([]Order, 0)
+var insidelist = make([]Order, 0)
+var statuslist = make(map[string]Status)
+
+func GetStatusList() map[string]Status {
+    return statuslist
+}
+func GetInsideList() []Order {
+    return insidelist
+}
+func GetOrderList() []Order {
+    return orderlist
+}
+
+func PackNetworkMessage(message Networkmessage) []byte {
+//  fmt.Println("PACKING: ", message)
+	send, err := json.Marshal(message)
+	if err != nil {
+		fmt.Println("Could not pack message: ",err.Error())
+	}
+	return send
+}
+
+func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
+	var message Networkmessage
+//  fmt.Println("UNPACKING: ", string(pack))
+	err := json.Unmarshal(pack[:bit], &message)
+	if err != nil {
+		fmt.Println("Could not unpack message: ", err.Error())
+	}
+	return message
+}
 
 type Con struct {
     Address *net.TCPConn
     Connect bool
 }
 
-func Orderdistr(generatedMsgs_c chan networking.Networkmessage){
+func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
+    var butt elevator.Elev_button
     for{
-        for floor, buttons := Button_channel_matrix{
-            for button, channel:= buttons{
+        for floor, buttons := range elevator.Button_channel_matrix{
+            for button, channel:= range buttons{
                 if drivers.ReadBit(channel){
-                    networking. Neworder(generatedMsgs_c, Order{Direction:button, Floor:floor+1, InOut:1, Source: myip})
+                    if button == 0 {
+                        butt = elevator.BUTTON_CALL_UP
+                    }else if button == 1 {
+                        butt = elevator.BUTTON_CALL_DOWN
+                    }else{
+                        butt = elevator.BUTTON_COMMAND
+                    }
+                    Neworder(generatedMsgs_c, Order{Direction:butt, Floor:floor+1, InOut:1, Source: myip})
                 }
             }
         }
@@ -41,33 +85,35 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
     return connections, errors.New("Connection not in slice") 
 }
 
-func Dialer2(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
-	for{
-		for elevator,status := range elevators{
-			if !status {
-                raddr, err := net.ResolveTCPAddr("tcp",elevator+port)
-				dialConn, err := net.DialTCP("tcp", nil, raddr)
-				if err != nil {
-					fmt.Println(err)
-				}else{
-                    connect_c <- Com{Address:dialConn,Connect:true}
-                    fmt.Println("Adding: ",dialConn)
-					dialconn_c <-dialConn
-				}
-			}
+func Dialer2(connections []*net.TCPConn, connect_c chan Con, port string, elevators []misc.Elevator){
+    for{
+        elevatorloop:
+	    for _,elevator := range elevators{
+            for _, connection := range connections {
+                if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
+                    continue elevatorloop
+                }
+            }
+            raddr, err := net.ResolveTCPAddr("tcp",elevator.Address+port)
+            dialConn, err := net.DialTCP("tcp", nil, raddr)
+            if err != nil {
+                fmt.Println(err)
+            }else{
+                connect_c <- Con{Address:dialConn,Connect:true}
+                fmt.Println("Adding: ",dialConn)
+            }
 		}
 	    time.Sleep(1000 * time.Millisecond)
 	}
 }
 
-func Listener2(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan Com){
+func Listener2(conn *net.TCPListener, connect_c chan Con){
     for {
         newConn, err := conn.AcceptTCP()
         if err != nil {
             fmt.Println(err)
         }
-        connect_c <- Com{Address:newConn, Connect:true}
-        newConn_c <- newConn
+        connect_c <- Con{Address:newConn, Connect:true}
     }
 }
 
@@ -83,7 +129,7 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
         receivedMsgs_c <- unpacked
     }
 }
-func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
+func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Con) {
     for {
         connection.SetDeadline(time.Now().Add(3 * time.Microsecond))
         if _, err := connection.Write([]byte("a")); err != nil {
@@ -100,34 +146,33 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
                 fmt.Println("EOF")
             }
             connection.Close()
-            connect_c <- Com{Address:connection,Connect:false}
+            connect_c <- Con{Address:connection,Connect:false}
             error_c <- err.Error()
             return
         }
     }
 }
 
-func NetworkWrapper(elevators []Elevator) {
+func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
     var connections []*net.TCPConn
     listenaddr, _ := net.ResolveTCPAddr("tcp", "6969")
-    lisenconn, _ := net.ListenTCP("tcp", listenaddr)
+    listenconn, _ := net.ListenTCP("tcp", listenaddr)
     connections_c := make(chan Con, 15)
-    generatedmessages_c := make(chan Networkmessage, 10)
     receivedmessages_c := make(chan Networkmessage,15)
     error_c := make(chan string, 10)
-    go Listener(listenconn, connections_c)
-    go Orderdistr(generatedmessages_c)
-    go Dialer(
+    go Listener2(listenconn, connections_c)
+    go Orderdistr(generatedmessages_c, myip)
+    go Dialer2(connections, connections_c, ":5555", conf.Elevators)
     for {
         select {
             case connection := <- connections_c: {
                 if connection.Connect {
-                    connections = append(connections, newconnection)
-                    go Receiver(connection)
+                    connections = append(connections, connection.Address)
+                    go Receiver2(connection.Address, receivedmessages_c)
 //                  go IsAlive(newconnection, error_c, connect_c)
                 }else{
-                    connection.Close()
-                    connections, err_= RemoveConnection(connections, connection)
+                    connection.Address.Close()
+                    _ , err := RemoveConnection(connections, connection.Address)
                     if err != nil {
                         error_c <- err.Error()
                     }
@@ -136,7 +181,9 @@ func NetworkWrapper(elevators []Elevator) {
             }
             case received := <- receivedmessages_c: {
                 if received.Order.Floor>0{
-                    elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.receivedOut)
+                    if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
+                        elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
+                    }
                     if received.Order.InOut==0{
                         received.Order.InOut=1
                         for i, b := range orderlist {
@@ -144,9 +191,11 @@ func NetworkWrapper(elevators []Elevator) {
                                 orderlist = append(orderlist[:i], orderlist[i+1:]...)
                             }
                         }
+                    }else if received.Order.Direction==elevator.BUTTON_COMMAND{
+                        insidelist=append(insidelist, received.Order)
                     }else{
                         orderlist=append(orderlist, received.Order)
-                        fmt.Println(orderlist)
+//                      fmt.Println(orderlist)
                     }
                 }
             }
@@ -155,11 +204,12 @@ func NetworkWrapper(elevators []Elevator) {
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
                     connection.SetDeadline(time.Now().Add(50 * time.Millisecond))
-                    if _ err := connection.Write(packed); err != nil {
+                    if _ ,err := connection.Write(pack); err != nil {
                         time.Sleep(100 * time.Millisecond)
                         error_c <- err.Error()
                         connections_c <- Con{Address: connection, Connect: false}
-                        } 
+                    } 
+                }
             }
             case err := <- error_c: {
                 fmt.Println("ERROR: "+err)
@@ -171,4 +221,36 @@ func NetworkWrapper(elevators []Elevator) {
         }
     }
 } 
+func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state string, lastfloor int, inhouse bool, source string) Networkmessage {
+	s := Status{State: state, LastFloor: lastfloor, Inhouse: inhouse,Source:source}
+	o := Order{Direction:dir, Floor:floor, InOut:inout}
+	message := Networkmessage{Order:o,Status:s}
+	return message
+}
 
+func SendStatuslist(generatedMsgs_c chan Networkmessage) {
+    myip := misc.GetLocalIP()
+    mystatus := statuslist[myip]
+    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
+}
+
+func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
+    for _, oldstat := range statuslist {
+        if oldstat == status {
+            return false
+        }
+    }
+    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
+    return true
+}
+
+
+func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
+    for _, b := range orderlist {
+        if b == order {
+            return false
+        }
+    }
+    generatedMsgs_c <- GenerateMessage(order.Direction,order.Floor,order.InOut,"",-1,false,"")
+    return true
+}

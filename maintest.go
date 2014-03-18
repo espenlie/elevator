@@ -2,7 +2,7 @@ package main
 
 import (
     ."fmt"
-    ."net"
+//  ."net"
 //  ."strings"
 //	"strconv"
     "time"
@@ -13,10 +13,10 @@ import (
 )
 
 
-func Nextorder(myip string, Elevatorlist []Elevator)networking.Order{
+func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	var statelist = make(map[string]networking.Status)
 	statuslist := networking.GetStatusList()
-	insidelist := networking.GetInsidelist()
+	insidelist := networking.GetInsideList()
 	for host, status := range statuslist {
 		statelist[host]=status
     }
@@ -45,7 +45,7 @@ func Nextorder(myip string, Elevatorlist []Elevator)networking.Order{
 					if statelist[elevator.Address].Source==myip{
 						return order
 					}else{
-						delete(statelist,elevator.address)
+						delete(statelist,elevator.Address)
 						continue insideloop
 					}
 				}
@@ -61,7 +61,7 @@ func Nextorder(myip string, Elevatorlist []Elevator)networking.Order{
 						if statelist[elevator.Address].Source==myip{
 							return order
 						}else{
-							delete(statelist,elevator.address)
+							delete(statelist,elevator.Address)
 							continue orderloop
 						}
 					}
@@ -73,7 +73,7 @@ func Nextorder(myip string, Elevatorlist []Elevator)networking.Order{
 						if statelist[elevator.Address].Source==myip{
 							return order
 						}else{
-							delete(statelist,elevator.address)
+							delete(statelist,elevator.Address)
 							continue orderloop
 						}
 					}
@@ -81,12 +81,12 @@ func Nextorder(myip string, Elevatorlist []Elevator)networking.Order{
 			}
 		}
 	}
-	return networking.EmptyOrder
+	return networking.EmptyOrder[0]
 }
 
-func Stop(myip string, mystate string)networking.Order{
-	takeorder := networking.EmptyOrder
-	insidelist := networking.GetInsidelist()
+func Stop(myip string, mystate string)[]networking.Order{
+	var takeorder []networking.Order
+	insidelist := networking.GetInsideList()
 	orderlist := networking.GetOrderList()
 	for _,order := range insidelist{
 		if order.Source==myip && order.Floor==elevator.Current_floor(){
@@ -104,23 +104,26 @@ func Stop(myip string, mystate string)networking.Order{
 }
 
 
-func nextstate(myip string, conf.Elevators []misc.Elevator, mystate string) (string, []networking.Order){
-	Println("My next order: ", next)
+func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, []networking.Order){
 	stop := Stop(myip, mystate)
-	if elevator.Elev_at_floor() && stop.Floor==elevator.Current_floor(){
-		return "DOOR_OPEN", networking.Order{Direction:0,Floor:0,InOut:0}
+	for _ , order := range stop{
+		if elevator.Elev_at_floor() && order.Floor==elevator.Current_floor(){
+			return "DOOR_OPEN", stop
+		}
+	}
 //	}else if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
 //		Println("DENNE KAN IKKE SLETTES!")
 //		return "DOOR_OPEN", next												//Behoves denne?
-	next := Nextorder(myip, conf.Elevators)
-	}else if next.Floor>elevator.Current_floor(){
-		return "UP", next
+	next := Nextorder(myip, elevators)
+//	Println("My next order: ", next)
+	if next.Floor>elevator.Current_floor(){
+		return "UP", nil
 	}else if (next.Floor<elevator.Current_floor() && next.Floor!=0){
-		return "DOWN", next
+		return "DOWN", nil
 	}else if elevator.Elev_at_floor(){
-		return "IDLE", next
+		return "IDLE", nil
 	}else{
-	return mystate, []networking.EmptyOrder
+		return mystate, nil
 	}
 }
 
@@ -132,8 +135,8 @@ func main() {
 //	var conf misc.Config
 	conf := misc.LoadConfig("/home/student/LL/elevator/config/conf.json")
 
-    connections         := make(map[string]bool)
-
+//  connections         := make(map[string]bool)
+    generatedmessages_c := make(chan networking.Networkmessage, 10)
 
 //  listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
 //  listenConn, _ := ListenTCP("tcp", listenAddr)
@@ -142,7 +145,7 @@ func main() {
 //  newConn_c       := make(chan *TCPConn, 10)
 //  dialConn_c      := make(chan *TCPConn, 10)
 
-    go networking.Networking(conf)
+    go networking.NetworkWrapper(conf, myip, generatedmessages_c)
 //	statuslist[myip]=networking.Status{State:"UP",LastFloor:1,Source:myip}
 //	takeorder(orderlist, statuslist, myip)
 //	go networking.Listener(listenConn, newConn_c)
@@ -155,6 +158,7 @@ func main() {
 //      }
 
 	state := "INIT"
+	var order []networking.Order
 //	var floor int
 	var mystatus networking.Status
 	var takeorders []networking.Order
@@ -169,7 +173,7 @@ func main() {
 				drivers.IoInit()
 				elevator.Elev_init()
 				Println("OMGGGGG")
-				networking.NewStatus(mystatus, generatedMsgs_c)
+				networking.NewStatus(mystatus, generatedmessages_c)
 				elevator.Elev_set_speed(-300)
 				state , takeorders = nextstate(myip, conf.Elevators, mystatus.State)
 			}
@@ -187,9 +191,9 @@ func main() {
 			}
 			case "DOOR_OPEN":{
 				elevator.Elev_set_door_open_lamp(1)
-				for _, order = range takeorders{
+				for _, order := range takeorders{
 					order.InOut=0
-					networking.Neworder(generatedMsgs_c, order)
+					networking.Neworder(generatedmessages_c, order)
 				}
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
@@ -204,14 +208,15 @@ func main() {
 //		orderlist := networking.GetOrderList()
 //		Println(statuslist)
 //		Println(orderlist)
-//		Println(state)
+		Println(order)
+		Println(state)
 		time.Sleep(10 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
 //		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
-		networking.NewStatus(mystatus, generatedMsgs_c)
+		networking.NewStatus(mystatus, generatedmessages_c)
 		time.Sleep(10 * time.Millisecond)
 //		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
 	}
