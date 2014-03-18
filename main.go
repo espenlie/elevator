@@ -11,9 +11,6 @@ import (
 	"elevator"
 )
 
-var ordersinside = make([]int,0)
-
-
 
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statelist := networking.GetStatusList()
@@ -196,7 +193,7 @@ func main() {
 		elevator.FloorUpdater()
 		mystatus.State=state
 		mystatus.LastFloor=elevator.Current_floor()
-		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
+//		mystatus.Inhouse=ConflictingOrders(mystatus, ordersinside)
 		networking.NewStatus(mystatus, generatedMsgs_c)
 		time.Sleep(10 * time.Millisecond)
 //		generatedMsgs_c <- networking.GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
