@@ -85,7 +85,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-        connection.SetDeadline(time.Now().Add(3 * time.Microsecond))
+        connection.SetDeadline(time.Now().Add(30 * time.Microsecond))
 //      connection.Write([]byte("test"))
 //      var buf []byte
 //      if _, err := connection.Read(buf[:]); err != nil {

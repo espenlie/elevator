@@ -121,7 +121,7 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 	next := Nextorder(myip, elevators)
 	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
 		Println("DENNE KAN IKKE SLETTES!")
-		return "DOOR_OPEN", next												//Behoves denne?
+		return "DOOR_OPEN", append(stop, next)
 	}
 //	Println("My next order: ", next)
 	if next.Floor>elevator.Current_floor(){
