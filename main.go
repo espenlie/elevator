@@ -33,7 +33,12 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
-							delete(statelist,elevator)
+							Println("BEFORE: ", networking.GetStatusList())
+							Println("BEFORE: ", statelist)
+							delete(connections, elevator)
+//							delete(statelist,elevator)
+							Println("After: ", networking.GetStatusList())
+							Println("After: ", statelist)
 							continue orderloop
 						}
 					}
