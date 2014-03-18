@@ -86,7 +86,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
     return connections, errors.New("Connection not in slice") 
 }
 
-func Dialer2(connections []*net.TCPConn, connect_c chan Con, port string, elevators []misc.Elevator){
+func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     for{
         elevatorloop:
 	    for _,elevator := range elevators{
@@ -168,7 +168,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
     error_c := make(chan string, 10)
     go Listener2(listenconn, connections_c)
     go Orderdistr(generatedmessages_c, myip)
-    go Dialer2(connections, connections_c, ":5555", conf.Elevators)
+    go Dialer2(connections_c, ":5555", conf.Elevators)
     for {
         select {
             case connection := <- connections_c: {
