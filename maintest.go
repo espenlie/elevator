@@ -1,4 +1,5 @@
- package main
+package main
+
 import (
     ."fmt"
     ."net"
@@ -15,6 +16,7 @@ import (
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	var statelist = make(map[string]networking.Status)
 	statuslist := networking.GetStatusList()
+	insidelist := networking.GetInsidelist()
 	for host, status := range statuslist {
 		statelist[host]=status
     }
@@ -24,11 +26,38 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	Println("Connections: ", connections)
 	Println("MYIP: ", myip)
 	orderloop:
+	for _,order := range insidelist{
+		for elevator,_ :=range connections{
+			if status,ok := statelist[elevator]; ok{
+				if ((status.State=="UP" && status.LastFloor<=order.Floor) || (status.State=="DOWN" && status.LastFloor>=order.Floor)){
+					if statelist[elevator].Source==myip{
+						return order
+					}else{
+						delete(statelist,elevator)
+						continue orderloop
+					}
+				}
+			}
+		}
+		for elevator,_ :=range connections{
+			if status,ok := statelist[elevator]; ok{
+				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)){
+					if statelist[elevator].Source==myip{
+						return order
+					}else{
+						delete(statelist,elevator)
+						continue orderloop
+					}
+				}
+			}
+		}
+
+	}
 	for _,order := range orderlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
 				if status,ok := statelist[elevator]; ok{
-					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
+					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor)){
 						if statelist[elevator].Source==myip{
 							return order
 						}else{
@@ -40,7 +69,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 			}
 			for elevator,_ :=range connections{
 				if status,ok := statelist[elevator]; ok{
-					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
+					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i){
 						if statelist[elevator].Source==myip{
 							return order
 						}else{

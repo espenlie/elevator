@@ -40,6 +40,7 @@ func main() {
         select {
             case newconnection := <- connections_c  :{
                 fmt.Println("New connection",newconnection.LocalAddr().String())
+//              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
                 go IsAlive(newconnection, error_c, connect_c)
             }
@@ -67,6 +68,10 @@ func main() {
         }
     }
 }
+//func isTimeout(err error) bool {
+//  e, ok := err.(Error)
+//  return ok && e.Timeout()
+//}
 
 func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
@@ -81,11 +86,15 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-        connection.SetDeadline(time.Now().Add(500 * time.Millisecond))
+        connection.SetDeadline(time.Now().Add(1 * time.Millisecond))
 //      connection.Write([]byte("test"))
 //      var buf []byte
 //      if _, err := connection.Read(buf[:]); err != nil {
+        
         if _, err := connection.Write([]byte("a")); err != nil {
+//          if isTimout(err){
+//              fmt.Println("TIMEOUT")
+//          }
 //          fmt.Println(err.Error())
             if opErr, ok := err.(*net.OpError); ok{
                 if opErr.Timeout() {
