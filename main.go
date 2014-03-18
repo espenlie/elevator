@@ -60,34 +60,6 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 	return networking.Order{Direction:0,Floor:0,InOut:0}
 }
 
-func ConflictingOrders(mystatus networking.Status, ordersinside []int)bool{
-	for _, b := range ordersinside {
-		if (mystatus.LastFloor<=b && mystatus.State=="UP") || (mystatus.LastFloor>=b && mystatus.State=="DOWN"){
-			return true
-		}
-	}
-	return false
-}
-
-func Addinsideorders(){
-	for{
-		for i := 0; i < elevator.N_FLOORS; i++ {
-			if (elevator.Elev_get_button_signal(elevator.BUTTON_COMMAND, i) == 1){
-			    for _, b := range ordersinside {
-					if b == i {
-						break
-					}else{
-						elevator.Elev_set_button_lamp(elevator.BUTTON_COMMAND, i, 1)
-						ordersinside=append(ordersinside, i)
-					}
-				}
-			}
-		}
-	}
-}
-
-
-
 
 func nextstate(myip string, connections map[string]bool, mystate string) (string, networking.Order){
 	next := nextorder(myip, connections)
