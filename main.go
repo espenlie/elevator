@@ -18,16 +18,18 @@ var ordersinside = make([]int,0)
 func nextorder(myip string, connections map[string]bool)networking.Order{
 	statuslist := networking.GetStatusList()
 	orderlist := networking.GetOrderList()
-	Println("statuslist: ", statuslist)
-	Println("orderlist: ", orderlist)
-	Println("Connections: ", connections)
+//	Println("statuslist: ", statuslist)
+//	Println("orderlist: ", orderlist)
+//	Println("Connections: ", connections)
 	orderloop:
 	for _,order := range orderlist{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
 					if ((status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor) && status.Inhouse==false){
+						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statuslist[elevator].Source==myip{
+							Println("Elevator ", statuslist[elevator], "taking order: ", order)
 							return order
 						}else{
 							delete(statuslist,elevator)
@@ -39,6 +41,7 @@ func nextorder(myip string, connections map[string]bool)networking.Order{
 			for elevator,_ :=range connections{
 				if status,ok := statuslist[elevator]; ok{
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i)&& status.Inhouse==false{
+						Println("Elevator ", statuslist[elevator], "taking order: ", order)
 						if statuslist[elevator].Source==myip{
 							return order
 						}else{
