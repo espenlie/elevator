@@ -20,10 +20,12 @@ type Com struct {
 
 
 func main() {
-    elevator["193.35.52.151"]=false
-    elevator["193.35.52.194"]=false
-    elevator["193.35.52.234"]=false
-//  elevator["129.241.187.158"]=false
+//  elevator["193.35.52.151"]=false
+//  elevator["193.35.52.194"]=false
+//  elevator["193.35.52.234"]=false
+    elevator["129.241.187.153"]=false
+    elevator["129.241.187.140"]=false
+    elevator["129.241.187.161"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
@@ -81,7 +83,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
         connection.SetDeadline(time.Now().Add(500 * time.Millisecond))
 //      connection.Write([]byte("test"))
-        var buf []byte
+//      var buf []byte
 //      if _, err := connection.Read(buf[:]); err != nil {
         if _, err := connection.Write([]byte("a")); err != nil {
 //          fmt.Println(err.Error())
