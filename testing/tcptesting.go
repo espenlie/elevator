@@ -22,16 +22,16 @@ func main() {
 //  elevator["193.35.52.151"]=false
 //  elevator["193.35.52.194"]=false
 //  elevator["193.35.52.234"]=false
-    elevator["129.241.187.153"]=false
     elevator["129.241.187.147"]=false
-    elevator["129.241.187.161"]=false
+    elevator["129.241.187.148"]=false
+//  elevator["129.241.187.161"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
     message_c     := make(chan []byte, 10)
     error_c       := make(chan string, 10)
     connect_c     := make(chan Com,10)
 
-    listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
+    listenaddr, _ := net.ResolveTCPAddr("tcp", ":6666")
     listenconn, _ := net.ListenTCP("tcp",listenaddr)
     go Listener(listenconn, connections_c, connect_c)
     go Dialer(connect_c,":5555", connections_c)

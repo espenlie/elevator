@@ -212,10 +212,10 @@ func main() {
 			}
 		}    
 //		Println(elevator.Address)
-//		statuslist := networking.GetStatusList()
-//		orderlist := networking.GetOrderList()
-//		Println(statuslist)
-//		Println(orderlist)
+		statuslist := networking.GetStatusList()
+		orderlist := networking.GetOrderList()
+		Println(statuslist)
+		Println(orderlist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)
