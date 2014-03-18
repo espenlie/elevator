@@ -18,7 +18,6 @@ type Com struct {
     Connect bool
 }
 
-
 func main() {
 //  elevator["193.35.52.151"]=false
 //  elevator["193.35.52.194"]=false
@@ -86,7 +85,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-        connection.SetDeadline(time.Now().Add(1 * time.Millisecond))
+        connection.SetDeadline(time.Now().Add(3 * time.Microsecond))
 //      connection.Write([]byte("test"))
 //      var buf []byte
 //      if _, err := connection.Read(buf[:]); err != nil {
@@ -96,6 +95,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
 //              fmt.Println("TIMEOUT")
 //          }
 //          fmt.Println(err.Error())
+            time.Sleep(time.Second)
             if opErr, ok := err.(*net.OpError); ok{
                 if opErr.Timeout() {
                     fmt.Println("TIMEOUT")

@@ -6,7 +6,9 @@ type Order struct {
     Direction   elevator.Elev_button
     Floor       int
     InOut       int
+    Source      string
 }
+
 
 type Status struct {
     State       string
@@ -19,3 +21,10 @@ type Networkmessage struct {
     Order   Order
     Status  Status
 }
+
+const EmptyOrder = Order{Direction  : 0,
+                        Floor       : 0,
+                        Inout       : 0,
+                        Source      : "",
+                }
+
