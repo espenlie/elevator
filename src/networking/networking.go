@@ -129,6 +129,7 @@ func Networking(newConn_c chan *net.TCPConn, generatedMsgs_c chan Networkmessage
         case newConn := <- dialConn_c:
             newConn.SetKeepAlive(true)
             err := newConn.SetKeepAlivePeriod(100 * time.Millisecond)
+            time.Sleep(time.Second)
             if err != nil {
                 fmt.Println(err)
                 newConn.Close()
