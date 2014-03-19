@@ -42,8 +42,10 @@ func main() {
                 fmt.Println("New connection",newconnection.LocalAddr().String())
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
+                connection.SetKeepAlive(true)
+                connection.SetKeepAlivePeriod(100*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
-                go IsAlive(newconnection, error_c, connect_c)
+//              go IsAlive(newconnection, error_c, connect_c)
             }
             case newmessage := <- message_c :{
                 fmt.Println(string(newmessage))
@@ -143,7 +145,7 @@ func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com)
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
-        conn.SetReadDeadline(time.Now().Add(time.Second))
+        conn.SetReadDeadline(time.Now().Add(5*time.Second))
         if err != nil {
             fmt.Println("READ ERR: ",err)
             conn.Close()

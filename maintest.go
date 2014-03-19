@@ -38,6 +38,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP" && status.LastFloor<=order.Floor) || (status.State=="DOWN" && status.LastFloor>=order.Floor)){
 					if statelist[elevator.Address].Source==myip{
+						Println("Jeg tar: ", order)
 						return order
 					}else{
 						delete(statelist,elevator.Address)
@@ -50,6 +51,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)){
 					if statelist[elevator.Address].Source==myip{
+						Println("Jeg tar: ", order)
 						return order
 					}else{
 						delete(statelist,elevator.Address)
@@ -66,6 +68,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 				if status,ok := statelist[elevator.Address]; ok{
 					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor)){
 						if statelist[elevator.Address].Source==myip{
+						Println("Jeg tar: ", order)
 							return order
 						}else{
 							delete(statelist,elevator.Address)
@@ -78,6 +81,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 				if status,ok := statelist[elevator.Address]; ok{
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i){
 						if statelist[elevator.Address].Source==myip{
+							Println("Jeg tar: ", order)
 							return order
 						}else{
 							delete(statelist,elevator.Address)
@@ -119,6 +123,9 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 		}
 	}
 	next := Nextorder(myip, elevators)
+	Println("next: ", next)
+
+
 	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
 		Println("DENNE KAN IKKE SLETTES!")
 		return "DOOR_OPEN", append(stop, next)
@@ -215,12 +222,12 @@ func main() {
 			}
 		}    
 //		Println(elevator.Address)
-		statuslist := networking.GetStatusList()
-		orderlist := networking.GetOrderList()
-		insidelist := networking.GetInsideList()
-		Println("Statuslist: ", statuslist)
-		Println("Ordreliste: ", orderlist)
-		Println("Insidelist: ", insidelist)
+//		statuslist := networking.GetStatusList()
+//		orderlist := networking.GetOrderList()
+//		insidelist := networking.GetInsideList()
+//		Println("Statuslist: ", statuslist)
+//		Println("Ordreliste: ", orderlist)
+//		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)
