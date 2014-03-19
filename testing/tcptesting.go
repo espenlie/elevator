@@ -43,7 +43,7 @@ func main() {
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
                 newconnection.SetKeepAlive(true)
-                newconnection.SetKeepAlivePeriod(200*time.Millisecond)
+                newconnection.SetKeepAlivePeriod(2000*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
 //              go IsAlive(newconnection, error_c, connect_c)
             }
@@ -145,7 +145,7 @@ func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com)
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
-        conn.SetReadDeadline(time.Now().Add(5*time.Second))
+        conn.SetReadDeadline(time.Now().Add(5*time.Nanosecond))
         if err != nil {
             fmt.Println("READ ERR: ",err)
             conn.Close()

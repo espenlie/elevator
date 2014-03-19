@@ -120,6 +120,7 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 	stop := Stop(myip, mystate)
 	for _ , order := range stop{
 		if elevator.Elev_at_floor() && order.Floor==elevator.Current_floor(){
+			Println("Takeorder: ", stop)
 			return "DOOR_OPEN", stop
 		}
 	}
