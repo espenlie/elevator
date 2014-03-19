@@ -2,13 +2,13 @@ package networking
 
 import (
     "misc"
+//  "bytes"
     "net"
     "fmt"
     "time"
     "strings"
     "errors"
     "encoding/json"
-    "io"
     "elevator"
 //  "os"
     "drivers"
@@ -39,10 +39,10 @@ func PackNetworkMessage(message Networkmessage) []byte {
 	return send
 }
 
-func UnpackNetworkMessage(pack []byte, bit int) Networkmessage{
+func UnpackNetworkMessage(pack []byte) Networkmessage{
 	var message Networkmessage
 //  fmt.Println("UNPACKING: ", string(pack))
-	err := json.Unmarshal(pack[:bit], &message)
+	err := json.Unmarshal(pack, &message)
 	if err != nil {
 		fmt.Println("Could not unpack message: ", err.Error())
 	}
@@ -103,7 +103,7 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
 //              fmt.Println("Dial ERROR: ", err)
             }else{
                 connect_c <- Con{Address:dialConn, Connect:true}
-                fmt.Println("Adding: ",dialConn)
+                fmt.Println("Adding: ",dialConn.RemoteAddr().String())
             }
 		}
 	    time.Sleep(1000 * time.Millisecond)
@@ -120,23 +120,29 @@ func Listener2(conn *net.TCPListener, connect_c chan Con){
     }
 }
 
-func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
+func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connections_c chan Con){
     buf := make([]byte,1024)
-    conn.SetReadDeadline(2*time.Second)
+    keepalivebyte := []byte("KEEPALIVE")
+    receiverloop:
     for {
+        conn.SetReadDeadline(time.Now().Add(2*time.Second))
         bit, err := conn.Read(buf[0:])
         if err != nil {
-            fmt.Println(err)
+            fmt.Println(err.Error())
+            connections_c <- Con{Address:conn,Connect:false}
             return
         }
-        unpacked := UnpackNetworkMessage(buf,bit)
+        if string(buf[:bit]) == string(keepalivebyte){
+            continue receiverloop
+        }
+        unpacked := UnpackNetworkMessage(buf[:bit])
         receivedMsgs_c <- unpacked
     }
 }
 
 func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
     for {
-        connection.Write([]byte(0))
+        _, err := connection.Write([]byte("KEEPALIVE"))
         if err != nil {
             error_c <- err.Error()
         }
@@ -158,9 +164,10 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
             case connection := <- connections_c: {
                 if connection.Connect {
                     connections = append(connections, connection.Address)
-                    go SendAliveMessages(connection, error_c)
-                    go Receiver2(connection.Address, receivedmessages_c)
+                    go Receiver2(connection.Address, receivedmessages_c, connections_c)
+                    go SendAliveMessages(connection.Address, error_c)
                 }else{
+                    fmt.Println("Removing: ",connection)
                     connection.Address.Close()
                     _ , err := RemoveConnection(connections, connection.Address)
                     if err != nil {
@@ -178,27 +185,6 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     if received.Order. Direction!=elevator.BUTTON_COMMAND{
                         received.Order.Source=""
                     }
-//                  if received.Order. Direction==elevator.BUTTON_COMMAND{
-//                      fmt.Println("Received message: ", received)
-//                      if received.Order.InOut==0{
-//                          received.Order.InOut=1
-//                          for i, b := range insidelist {
-//                              if b == received.Order {
-//                                  insidelist = append(insidelist[:i], insidelist[i+1:]...)
-//                              }
-//                          }
-//                      }else{
-//                          AddedBefore:=false
-//                          for _, b := range insidelist {
-//                              if b == received.Order {
-//                                  AddedBefore = true
-//                              }
-//                          }
-//                          if !AddedBefore{
-//                              insidelist=append(insidelist, received.Order)
-//                          }
-//                      }
-//                  }else{  
                     if received.Order.InOut==0{
                         received.Order.InOut=1
                             for i, b := range orderlist{
@@ -216,21 +202,12 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                             orderlist=append(orderlist, received.Order)
                         }
                     }
-//                      fmt.Println(orderlist)
-//                  }
                 }
                 if received.Status.Source != "" {
-//                  fmt.Println("Statuslist before updating: ", statuslist)
-//                  fmt.Println("Adding: ", received.Status)
                     statuslist[received.Status.Source] = received.Status
-//                  fmt.Println("Statuslist after updating: ", statuslist)
-//                  if in.Status.State == "INIT" && in.Status.Source != misc.GetLocalIP(){
-//                      go SendStatuslist(generatedMsgs_c)
-//                  }
                 }
             }
             case message := <- generatedmessages_c: {
-//              fmt.Println("Message: ", message)
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {

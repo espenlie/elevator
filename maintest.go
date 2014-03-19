@@ -27,10 +27,10 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	for host, status := range statuslist {
 		statelist[host]=status
     }
-	Println("Myip: ",myip)
+//	Println("Myip: ",myip)
 	orderlist := networking.GetOrderList()
 //	Println("orderlist: ", orderlist)
-	Println("Statelist: ", statelist)
+//	Println("Statelist: ", statelist)
 //	Println("Connections: ", conf.Elevators)
 //	Println("MYIP: ", myip)
 	insideloop:
@@ -70,6 +70,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
         if order. Direction==elevator.BUTTON_COMMAND{
 			continue orderloop
 		}
+		Println("Sjekker Outside: ", order)
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
 				if status,ok := statelist[elevator.Address]; ok{
@@ -130,11 +131,11 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 		}
 	}
 	next := Nextorder(myip, elevators)
-	Println("next: ", next)
+//	Println("next: ", next)
 
 
 	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
-		Println("DENNE KAN IKKE SLETTES!")
+//		Println("DENNE KAN IKKE SLETTES!")
 		return "DOOR_OPEN", append(stop, next)
 	}
 //	Println("My next order: ", next)
@@ -216,7 +217,7 @@ func main() {
 				elevator.Elev_set_door_open_lamp(1)
 				for _, order := range takeorders{
 					order.InOut=0
-					Println("Taking orders: ", order)
+					Println("Deleting order: ", order)
 					time.Sleep(10 * time.Millisecond)
 					networking.Neworder(generatedmessages_c, order)
 				}
@@ -230,10 +231,10 @@ func main() {
 		}
 //		Println(elevator.Address)
 //		statuslist := networking.GetStatusList()
-		orderlist := networking.GetOrderList()
+//		orderlist := networking.GetOrderList()
 //		insidelist := networking.GetInsideList()
 //		Println("Statuslist: ", statuslist)
-		Println("Ordreliste: ", orderlist)
+//		Println("Ordreliste: ", orderlist)
 //		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)

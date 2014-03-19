@@ -6,7 +6,7 @@ import (
     "time"
     "strings"
     "errors"
-//  "io"
+    "bytes"
 //  "os"
 
 )
@@ -107,7 +107,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
 //          connect_c <- Com{Address:connection,Connect:false}
 //          return
 //      }
-        connection.Write([]byte("HEI"))
+        connection.Write([]byte("KEEPALIVE"))
         time.Sleep(500*time.Millisecond)
     }
 }
@@ -144,7 +144,9 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
 }
 
 func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com){
+    keepalivebyte := []byte("KEEPALIVE")
     buf := make([]byte,1024)
+    receiverloop:
     for {
         conn.SetReadDeadline(time.Now().Add(2000*time.Millisecond))
         bit, err := conn.Read(buf[0:])
@@ -153,6 +155,9 @@ func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com)
             conn.Close()
             connect_c <- Com{Address:conn,Connect:false}
             return
+        }
+        if bytes.Equal(bit, keepalivebyte){
+            continue receiverloop
         }
         receivedMsgs_c <- string(bit)
     }
