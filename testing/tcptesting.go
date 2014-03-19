@@ -42,7 +42,7 @@ func main() {
                 fmt.Println("New connection",newconnection.LocalAddr().String())
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
-                go Receiver(newconnection, receive_c)
+                go Receiver(newconnection, receive_c, connect_c)
                 go IsAlive(newconnection, error_c, connect_c)
             }
             case newmessage := <- message_c :{
@@ -64,7 +64,7 @@ func main() {
             }
 
             default :{
-                time.Sleep(1*time.Second)
+                time.Sleep(100*time.Millisecond)
                 fmt.Println(connections)
             }
         }
@@ -84,7 +84,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-        connection.SetDeadline(time.Now().Add(30 * time.Microsecond))
+        connection.SetWriteDeadline(time.Now().Add(30 * time.Microsecond))
         connection.SetKeepAlive(true)
         connection.SetKeepAlivePeriod(10*time.Millisecond)
         if _, err := connection.Write([]byte("hei")); err != nil {
@@ -139,13 +139,15 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
     }
 }
 
-func Receiver(conn *net.TCPConn, receivedMsgs_c chan string){
+func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com){
     buf := make([]byte,1024)
     for {
         bit, err := conn.Read(buf[0:])
-        conn.SetDeadline(time.Now().Add(time.Second))
+        conn.SetReadDeadline(time.Now().Add(time.Second))
         if err != nil {
             fmt.Println("READ ERR: ",err)
+            conn.Close()
+            connect_c <- Com{Address:conn,Connect:false}
             return
         }
         receivedMsgs_c <- string(bit)
