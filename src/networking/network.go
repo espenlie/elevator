@@ -128,7 +128,7 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connection
         conn.SetReadDeadline(time.Now().Add(2*time.Second))
         bit, err := conn.Read(buf[0:])
         if err != nil {
-            fmt.Println(err.Error())
+            fmt.Println("Receiver:",err.Error())
             connections_c <- Con{Address:conn,Connect:false}
             return
         }
@@ -145,6 +145,7 @@ func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
         _, err := connection.Write([]byte("KEEPALIVE"))
         if err != nil {
             error_c <- err.Error()
+            return
         }
         time.Sleep(time.Second)
     }
