@@ -238,7 +238,7 @@ func main() {
 //		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)
-		time.Sleep(20 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
 		mystatus.State=state

@@ -41,7 +41,7 @@ func PackNetworkMessage(message Networkmessage) []byte {
 
 func UnpackNetworkMessage(pack []byte) Networkmessage{
 	var message Networkmessage
-//  fmt.Println("UNPACKING: ", string(pack))
+    fmt.Println("UNPACKING: ", string(pack))
 	err := json.Unmarshal(pack, &message)
 	if err != nil {
 		fmt.Println("Could not unpack message: ", err.Error())
@@ -87,6 +87,9 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 }
 
 func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
+    local, _ := net.ResolveTCPAddr("tcp", "localhost"+port)
+    localconn, _ := net.DialTCP("tcp",nil,local)
+    connect_c <- Con{Address:localconn,Connect:true}
     for{
         elevatorloop:
 	    for _,elevator := range elevators{
@@ -169,6 +172,9 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     go SendAliveMessages(connection.Address, error_c)
                 }else{
                     fmt.Println("Removing: ",connection)
+                    remoteip := strings.Split(connection.Address.RemoteAddr().String(), ":")[0]
+	                errorstate := Status{State: "ERROR", LastFloor: 0, Inhouse: false,Source: remoteip}
+                    statuslist[remoteip] = errorstate
                     connection.Address.Close()
                     _ , err := RemoveConnection(connections, connection.Address)
                     if err != nil {
