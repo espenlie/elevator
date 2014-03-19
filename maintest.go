@@ -120,7 +120,6 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 	stop := Stop(myip, mystate)
 	for _ , order := range stop{
 		if elevator.Elev_at_floor() && order.Floor==elevator.Current_floor(){
-			Println("Takeorder: ", stop)
 			return "DOOR_OPEN", stop
 		}
 	}
@@ -218,11 +217,11 @@ func main() {
 				elevator.Elev_set_speed(0)
 				time.Sleep(3000 * time.Millisecond)
 				elevator.Elev_set_door_open_lamp(0)
-				state , _ = nextstate(myip, conf.Elevators, mystatus.State)
+				state , takeorders = nextstate(myip, conf.Elevators, mystatus.State)
 			}
 			case "ERROR":{
 			}
-		}    
+		}
 //		Println(elevator.Address)
 //		statuslist := networking.GetStatusList()
 		orderlist := networking.GetOrderList()
