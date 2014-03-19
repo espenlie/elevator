@@ -112,7 +112,7 @@ func Stop(myip string, mystate string)[]networking.Order{
 //		}
 //	}
 	for _,order := range orderlist{
-		if ((order.Direction==elevator.BUTTON_COMMAND) || (order.Direction==elevator.BUTTON_CALL_UP && mystate=="UP") || (order.Direction==elevator.BUTTON_CALL_DOWN && mystate=="DOWN")){
+		if ((order.Direction==elevator.BUTTON_COMMAND && order.Source == myip) || (order.Direction==elevator.BUTTON_CALL_UP && mystate=="UP") || (order.Direction==elevator.BUTTON_CALL_DOWN && mystate=="DOWN")){
 			if order.Floor==elevator.Current_floor(){
 				takeorder=append(takeorder, order)
 			}

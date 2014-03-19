@@ -68,10 +68,10 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
                         butt = elevator.BUTTON_COMMAND
                     }
                     Neworder(generatedMsgs_c, Order{Direction:butt, Floor:floor+1, InOut:1, Source: myip})
+                    time.Sleep(time.Millisecond)
                 }
             }
         }
-	time.Sleep(10 * time.Millisecond)
     }
 }
 
@@ -122,6 +122,7 @@ func Listener2(conn *net.TCPListener, connect_c chan Con){
 
 func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
     buf := make([]byte,1024)
+    conn.SetReadDeadline(2*time.Second)
     for {
         bit, err := conn.Read(buf[0:])
         if err != nil {
@@ -132,27 +133,14 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage){
         receivedMsgs_c <- unpacked
     }
 }
-func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Con) {
+
+func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
     for {
-        connection.SetDeadline(time.Now().Add(3 * time.Microsecond))
-        if _, err := connection.Write([]byte("a")); err != nil {
-            time.Sleep(time.Second)
-            if opErr, ok := err.(*net.OpError); ok{
-                if opErr.Timeout() {
-                    fmt.Println("TIMEOUT")
-                }
-                if opErr.Temporary() {
-                    fmt.Println("TEMPORARY")
-                }
-            }
-            if err == io.EOF {
-                fmt.Println("EOF")
-            }
-            connection.Close()
-            connect_c <- Con{Address:connection,Connect:false}
+        connection.Write([]byte(0))
+        if err != nil {
             error_c <- err.Error()
-            return
         }
+        time.Sleep(time.Second)
     }
 }
 
@@ -170,8 +158,8 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
             case connection := <- connections_c: {
                 if connection.Connect {
                     connections = append(connections, connection.Address)
+                    go SendAliveMessages(connection, error_c)
                     go Receiver2(connection.Address, receivedmessages_c)
-//                  go IsAlive(newconnection, error_c, connect_c)
                 }else{
                     connection.Address.Close()
                     _ , err := RemoveConnection(connections, connection.Address)
