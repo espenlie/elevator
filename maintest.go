@@ -27,9 +27,10 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	for host, status := range statuslist {
 		statelist[host]=status
     }
+	Println("Myip: ",myip)
 	orderlist := networking.GetOrderList()
 //	Println("orderlist: ", orderlist)
-//	Println("Statelist: ", statelist)
+	Println("Statelist: ", statelist)
 //	Println("Connections: ", conf.Elevators)
 //	Println("MYIP: ", myip)
 	insideloop:
@@ -37,7 +38,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor){
-					if statelist[elevator.Address].Source==myip{
+					if order.Source==myip{
 						Println("Jeg tar: ", order)
 						return order
 					}else{
@@ -50,7 +51,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)){
-					if statelist[elevator.Address].Source==myip{
+					if order.Source==myip{
 						Println("Jeg tar: ", order)
 						return order
 					}else{
@@ -223,11 +224,11 @@ func main() {
 		}    
 //		Println(elevator.Address)
 //		statuslist := networking.GetStatusList()
-//		orderlist := networking.GetOrderList()
-//		insidelist := networking.GetInsideList()
+		orderlist := networking.GetOrderList()
+		insidelist := networking.GetInsideList()
 //		Println("Statuslist: ", statuslist)
-//		Println("Ordreliste: ", orderlist)
-//		Println("Insidelist: ", insidelist)
+		Println("Ordreliste: ", orderlist)
+		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)
