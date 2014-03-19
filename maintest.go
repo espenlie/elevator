@@ -216,8 +216,8 @@ func main() {
 				elevator.Elev_set_door_open_lamp(1)
 				for _, order := range takeorders{
 					order.InOut=0
-						Println("Taking orders: ", order)
-						time.Sleep(10 * time.Millisecond)
+					Println("Taking orders: ", order)
+					time.Sleep(10 * time.Millisecond)
 					networking.Neworder(generatedmessages_c, order)
 				}
 				elevator.Elev_set_speed(0)

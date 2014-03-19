@@ -22,9 +22,9 @@ func main() {
 //  elevator["193.35.52.151"]=false
 //  elevator["193.35.52.194"]=false
 //  elevator["193.35.52.234"]=false
-    elevator["129.241.187.141"]=false
+//  elevator["129.241.187.141"]=false
     elevator["129.241.187.143"]=false
-    elevator["129.241.187.150"]=false
+    elevator["129.241.187.149"]=false
 //  elevator["129.241.187.161"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
@@ -46,7 +46,7 @@ func main() {
                 newconnection.SetKeepAlive(true)
                 newconnection.SetKeepAlivePeriod(20*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
-//              go IsAlive(newconnection, error_c, connect_c)
+                go IsAlive(newconnection, error_c, connect_c)
             }
             case newmessage := <-message_c :{
                 fmt.Println(string(newmessage))
@@ -55,7 +55,7 @@ func main() {
                 fmt.Println("Errormessage:"+errorm)
             }
             case in := <- receive_c :{
-                fmt.Println("INCOMING: ",in)
+                fmt.Println("INCOMING: ",string(in))
             }
             case lost := <- connect_c :{
                 index := strings.Split(lost.Address.RemoteAddr().String(),":")[0]
@@ -84,33 +84,33 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 }
 
 
-/*
+///*
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
-        connection.SetWriteDeadline(time.Now().Add(30 * time.Microsecond))
-        connection.SetKeepAlive(true)
-        connection.SetKeepAlivePeriod(10*time.Millisecond)
-        if _, err := connection.Write([]byte("hei")); err != nil {
-            time.Sleep(time.Second)
-            if opErr, ok := err.(*net.OpError); ok{
-                if opErr.Timeout() {
-                    fmt.Println("TIMEOUT")
-                }
-                if opErr.Temporary() {
-                    fmt.Println("TEMPORARY")
-                }
-            }
-            if err == io.EOF {
-                fmt.Println("EOF")
-            }
-            connection.Close()
-            connect_c <- Com{Address:connection,Connect:false}
-            return
-        }
+//      connection.SetWriteDeadline(time.Now().Add(30 * time.Microsecond))
+//      connection.SetKeepAlive(true)
+//      connection.SetKeepAlivePeriod(10*time.Millisecond)
+//      if _, err := connection.Write([]byte("hei")); err != nil {
+//          time.Sleep(time.Second)
+//          if opErr, ok := err.(*net.OpError); ok{
+//              if opErr.Timeout() {
+//                  fmt.Println("TIMEOUT")
+//              }
+//              if opErr.Temporary() {
+//                  fmt.Println("TEMPORARY")
+//              }
+//          }
+//          if err == io.EOF {
+//              fmt.Println("EOF")
+//          }
+//          connection.Close()
+//          connect_c <- Com{Address:connection,Connect:false}
+//          return
+//      }
+        connection.Write([]byte("HEI"))
         time.Sleep(500*time.Millisecond)
     }
 }
-*/
 func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 	for{
 		for elevator,status := range elevator{
@@ -146,7 +146,7 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
 func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com){
     buf := make([]byte,1024)
     for {
-        conn.SetReadDeadline(time.Now().Add(200*time.Millisecond))
+        conn.SetReadDeadline(time.Now().Add(2000*time.Millisecond))
         bit, err := conn.Read(buf[0:])
         if err != nil {
             fmt.Println("READ ERR: ",err)
