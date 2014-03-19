@@ -23,7 +23,7 @@ func numgo(){
 func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	var statelist = make(map[string]networking.Status)
 	statuslist := networking.GetStatusList()
-	insidelist := networking.GetInsideList()
+//	insidelist := networking.GetInsideList()
 	for host, status := range statuslist {
 		statelist[host]=status
     }
@@ -34,7 +34,10 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 //	Println("Connections: ", conf.Elevators)
 //	Println("MYIP: ", myip)
 	insideloop:
-	for _,order := range insidelist{
+	for _,order := range orderlist{
+        if received.Order. Direction!=elevator.BUTTON_COMMAND{
+			continue insideloop
+		}
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor){
@@ -64,6 +67,9 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	}
 	orderloop:
 	for _,order := range orderlist{
+        if received.Order. Direction==elevator.BUTTON_COMMAND{
+			continue ordereloop
+		}
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
 				if status,ok := statelist[elevator.Address]; ok{

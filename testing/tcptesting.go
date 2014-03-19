@@ -24,6 +24,7 @@ func main() {
 //  elevator["193.35.52.234"]=false
     elevator["129.241.187.141"]=false
     elevator["129.241.187.143"]=false
+    elevator["129.241.187.150"]=false
 //  elevator["129.241.187.161"]=false
     var connections []*net.TCPConn
     connections_c := make(chan *net.TCPConn, 10)
@@ -42,12 +43,12 @@ func main() {
                 fmt.Println("New connection",newconnection.LocalAddr().String())
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
-                newconnection.SetKeepAlive(true)
-                newconnection.SetKeepAlivePeriod(2000*time.Millisecond)
+//              newconnection.SetKeepAlive(true)
+//              newconnection.SetKeepAlivePeriod(2000*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
 //              go IsAlive(newconnection, error_c, connect_c)
             }
-            case newmessage := <- message_c :{
+            case newmessage := <-message_c :{
                 fmt.Println(string(newmessage))
             }
             case errorm := <- error_c :{
@@ -55,7 +56,6 @@ func main() {
             }
             case in := <- receive_c :{
                 fmt.Println("INCOMING: ",in)
-                
             }
             case lost := <- connect_c :{
                 index := strings.Split(lost.Address.RemoteAddr().String(),":")[0]
@@ -66,7 +66,7 @@ func main() {
             }
 
             default :{
-                time.Sleep(100*time.Millisecond)
+                time.Sleep(10*time.Millisecond)
                 fmt.Println(connections)
             }
         }

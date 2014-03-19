@@ -16,16 +16,16 @@ import (
 )
 var elevators = make(map[string]bool)
 var orderlist = make([]Order, 0)
-var insidelist = make([]Order, 0)
+//var insidelist = make([]Order, 0)
 var statuslist = make(map[string]Status)
 var connections =  make([]*net.TCPConn, 0)
 
 func GetStatusList() map[string]Status {
     return statuslist
 }
-func GetInsideList() []Order {
-    return insidelist
-}
+//func GetInsideList() []Order {
+//  return insidelist
+//}
 func GetOrderList() []Order {
     return orderlist
 }
@@ -187,27 +187,29 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
                         elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
                     }
-                    if received.Order. Direction==elevator.BUTTON_COMMAND{
-                        fmt.Println("Received message: ", received)
-                        if received.Order.InOut==0{
-                            received.Order.InOut=1
-                            for i, b := range insidelist {
-                                if b == received.Order {
-                                    insidelist = append(insidelist[:i], insidelist[i+1:]...)
-                                }
-                            }
-                        }else{
-                            AddedBefore:=false
-                            for _, b := range insidelist {
-                                if b == received.Order {
-                                    AddedBefore = true
-                                }
-                            }
-                            if !AddedBefore{
-                                insidelist=append(insidelist, received.Order)
-                            }
-                        }
-                    }else{  
+                    if received.Order. Direction!=elevator.BUTTON_COMMAND{
+                        received.Order.Source=""
+//                  if received.Order. Direction==elevator.BUTTON_COMMAND{
+//                      fmt.Println("Received message: ", received)
+//                      if received.Order.InOut==0{
+//                          received.Order.InOut=1
+//                          for i, b := range insidelist {
+//                              if b == received.Order {
+//                                  insidelist = append(insidelist[:i], insidelist[i+1:]...)
+//                              }
+//                          }
+//                      }else{
+//                          AddedBefore:=false
+//                          for _, b := range insidelist {
+//                              if b == received.Order {
+//                                  AddedBefore = true
+//                              }
+//                          }
+//                          if !AddedBefore{
+//                              insidelist=append(insidelist, received.Order)
+//                          }
+//                      }
+//                  }else{  
                         if received.Order.InOut==0{
                             received.Order.InOut=1
                             for i, b := range orderlist {
@@ -227,8 +229,8 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                             }
                         }
 //                      fmt.Println(orderlist)
-                    }
-                }            
+//                  }
+                }
                 if received.Status.Source != "" {
 //                  fmt.Println("Statuslist before updating: ", statuslist)
 //                  fmt.Println("Adding: ", received.Status)
