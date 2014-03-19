@@ -189,6 +189,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     }
                     if received.Order. Direction!=elevator.BUTTON_COMMAND{
                         received.Order.Source=""
+                    }
 //                  if received.Order. Direction==elevator.BUTTON_COMMAND{
 //                      fmt.Println("Received message: ", received)
 //                      if received.Order.InOut==0{
@@ -210,24 +211,23 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 //                          }
 //                      }
 //                  }else{  
-                        if received.Order.InOut==0{
-                            received.Order.InOut=1
-                            for i, b := range orderlist {
-                                if b == received.Order {
+                    if received.Order.InOut==0{
+                        received.Order.InOut=1
+                            for i, b := range orderlist{
+                                if b == received.Order { 
                                     orderlist = append(orderlist[:i], orderlist[i+1:]...)
                                 }
                             }
-                        }else{
-                            AddedBefore:=false
-                            for _, b := range orderlist {
-                                if b == received.Order {
-                                    AddedBefore = true
-                                }
-                            }
-                            if !AddedBefore{
-                                orderlist=append(orderlist, received.Order)
-                            }
+                    }else{
+                        AddedBefore:=false
+                        for _, b := range orderlist {
+                            if b == received.Order {
+                                AddedBefore = true
+                            }                            }
+                        if !AddedBefore{
+                            orderlist=append(orderlist, received.Order)
                         }
+                    }
 //                      fmt.Println(orderlist)
 //                  }
                 }
@@ -295,13 +295,11 @@ func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
 func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
 //  fmt.Println("Orderlist: ",orderlist)
 //  fmt.Println("Order: ", order)
+    if order. Direction!=elevator.BUTTON_COMMAND{
+        order.Source=""
+    }
     for _, b := range orderlist {
         if b == order {
-            return false
-        }
-    }
-    for _, a := range insidelist {
-        if a == order {
             return false
         }
     }

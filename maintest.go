@@ -35,7 +35,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 //	Println("MYIP: ", myip)
 	insideloop:
 	for _,order := range orderlist{
-        if received.Order. Direction!=elevator.BUTTON_COMMAND{
+        if order. Direction!=elevator.BUTTON_COMMAND{
 			continue insideloop
 		}
 		for _, elevator :=range Elevatorlist{
@@ -67,8 +67,8 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 	}
 	orderloop:
 	for _,order := range orderlist{
-        if received.Order. Direction==elevator.BUTTON_COMMAND{
-			continue ordereloop
+        if order. Direction==elevator.BUTTON_COMMAND{
+			continue orderloop
 		}
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
@@ -104,15 +104,15 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 
 func Stop(myip string, mystate string)[]networking.Order{
 	var takeorder []networking.Order
-	insidelist := networking.GetInsideList()
+//	insidelist := networking.GetInsideList()
 	orderlist := networking.GetOrderList()
-	for _,order := range insidelist{
-		if order.Source==myip && order.Floor==elevator.Current_floor(){
-			takeorder=append(takeorder, order)
-		}
-	}
+//	for _,order := range insidelist{
+//		if order.Source==myip && order.Floor==elevator.Current_floor(){
+//			takeorder=append(takeorder, order)
+//		}
+//	}
 	for _,order := range orderlist{
-		if ((order.Direction==elevator.BUTTON_CALL_UP && mystate=="UP") || (order.Direction==elevator.BUTTON_CALL_DOWN && mystate=="DOWN")){
+		if ((order.Direction==elevator.BUTTON_COMMAND) || (order.Direction==elevator.BUTTON_CALL_UP && mystate=="UP") || (order.Direction==elevator.BUTTON_CALL_DOWN && mystate=="DOWN")){
 			if order.Floor==elevator.Current_floor(){
 				takeorder=append(takeorder, order)
 			}
@@ -231,10 +231,10 @@ func main() {
 //		Println(elevator.Address)
 //		statuslist := networking.GetStatusList()
 		orderlist := networking.GetOrderList()
-		insidelist := networking.GetInsideList()
+//		insidelist := networking.GetInsideList()
 //		Println("Statuslist: ", statuslist)
 		Println("Ordreliste: ", orderlist)
-		Println("Insidelist: ", insidelist)
+//		Println("Insidelist: ", insidelist)
 //		Println(order)
 //		Println(state)
 		time.Sleep(20 * time.Millisecond)

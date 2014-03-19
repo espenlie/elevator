@@ -6,7 +6,7 @@ import (
     "time"
     "strings"
     "errors"
-    "io"
+//  "io"
 //  "os"
 
 )
@@ -44,7 +44,7 @@ func main() {
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
                 newconnection.SetKeepAlive(true)
-                newconnection.SetKeepAlivePeriod(2000*time.Millisecond)
+                newconnection.SetKeepAlivePeriod(20*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
 //              go IsAlive(newconnection, error_c, connect_c)
             }
@@ -66,7 +66,7 @@ func main() {
             }
 
             default :{
-                time.Sleep(10*time.Millisecond)
+                time.Sleep(100*time.Millisecond)
                 fmt.Println(connections)
             }
         }
@@ -84,6 +84,7 @@ func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*n
 }
 
 
+/*
 func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
     for{
         connection.SetWriteDeadline(time.Now().Add(30 * time.Microsecond))
@@ -109,6 +110,7 @@ func IsAlive(connection *net.TCPConn, error_c chan string, connect_c chan Com) {
         time.Sleep(500*time.Millisecond)
     }
 }
+*/
 func Dialer(connect_c chan Com, port string, dialconn_c chan *net.TCPConn){
 	for{
 		for elevator,status := range elevator{
@@ -144,7 +146,7 @@ func Listener(conn *net.TCPListener, newConn_c chan *net.TCPConn, connect_c chan
 func Receiver(conn *net.TCPConn, receivedMsgs_c chan string, connect_c chan Com){
     buf := make([]byte,1024)
     for {
-        conn.SetReadDeadline(time.Now().Add(1*time.Second))
+        conn.SetReadDeadline(time.Now().Add(200*time.Millisecond))
         bit, err := conn.Read(buf[0:])
         if err != nil {
             fmt.Println("READ ERR: ",err)
