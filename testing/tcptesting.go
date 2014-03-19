@@ -42,8 +42,8 @@ func main() {
                 fmt.Println("New connection",newconnection.LocalAddr().String())
 //              newconnection.SetDeadline(time.Now().Add(1*time.Second))
                 connections = append(connections, newconnection)
-                connection.SetKeepAlive(true)
-                connection.SetKeepAlivePeriod(100*time.Millisecond)
+                newconnection.SetKeepAlive(true)
+                newconnection.SetKeepAlivePeriod(100*time.Millisecond)
                 go Receiver(newconnection, receive_c, connect_c)
 //              go IsAlive(newconnection, error_c, connect_c)
             }

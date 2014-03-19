@@ -66,7 +66,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
 				if status,ok := statelist[elevator.Address]; ok{
-					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor)){
+					if (i!=0 && ((status.State=="UP" || status.State=="IDLE") && status.LastFloor+i==order.Floor) || ((status.State=="DOWN"||status.State=="IDLE") && status.LastFloor-i==order.Floor)){
 						if statelist[elevator.Address].Source==myip{
 						Println("Jeg tar: ", order)
 							return order
