@@ -44,14 +44,16 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 				Println("Status: ", status.Source)
 				Println("Order: ", order.Source)
 				Println("Myip: ", myip)
-				if (((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor) && status.Source==order.Source){
-					if status.Source==myip{
-						Println("Jeg tar: ", order)
-						return order
-					}else{
-						Println("slettet1: ", elevator.Address)
-						delete(statelist,elevator.Address)
-						continue insideloop
+				if (((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor)){
+					if status.Source==order.Source{
+						if status.Source==myip{
+							Println("Jeg tar: ", order)
+							return order
+						}else{
+							Println("slettet1: ", elevator.Address)
+							delete(statelist,elevator.Address)
+							continue insideloop
+						}
 					}
 				}
 			}
