@@ -54,6 +54,19 @@ type Con struct {
     Connect bool
 }
 
+func InitUpdate(connection *net.TCPConn, myip string) {
+    pack := make([]byte,1024)
+    status := statuslist[myip]
+    pack = PackNetworkMessage(Networkmessage{Order:Order{}, Status:status})
+    connection.Write(pack)
+    time.Sleep(10*time.Millisecond)
+    for _,order := range orderlist {
+            pack = PackNetworkMessage(Networkmessage{Order:order,Status: Status{}})
+            connection.Write(pack)
+            time.Sleep(10*time.Millisecond)
+    }
+}
+
 func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
     var butt elevator.Elev_button
     for{
@@ -170,6 +183,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     connections = append(connections, connection.Address)
                     go Receiver2(connection.Address, receivedmessages_c, connections_c)
                     go SendAliveMessages(connection.Address, error_c)
+                    go InitUpdate(connection.Address, myip)
                 }else{
                     fmt.Println("Removing: ",connection)
                     remoteip := strings.Split(connection.Address.RemoteAddr().String(), ":")[0]
@@ -218,13 +232,11 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
-//                  connection.SetDeadline(time.Now().Add(50 * time.Millisecond))
                     connection.Write(pack)
-//                  time.Sleep(100 * time.Millisecond)
-//                  if err != nil{    
+//                  if err != nil{
 //                      error_c <- err.Error()
 //                      connections_c <- Con{Address: connection, Connect: false}
-//                  } 
+//                  }
                 }
             }
             case err := <- error_c: {

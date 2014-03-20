@@ -160,7 +160,7 @@ func main() {
 	conf := misc.LoadConfig("/home/student/LL/elevator/config/conf.json")
 
 //  connections         := make(map[string]bool)
-    generatedmessages_c := make(chan networking.Networkmessage, 15)
+    generatedmessages_c := make(chan networking.Networkmessage, 100)
 
 //  listenAddr, _ := ResolveTCPAddr("tcp", ":6969")
 //  listenConn, _ := ListenTCP("tcp", listenAddr)
