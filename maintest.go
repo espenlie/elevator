@@ -238,14 +238,14 @@ func main() {
 			}
 		}
 //		Println(elevator.Address)
-//		statuslist := networking.GetStatusList()
-//		orderlist := networking.GetOrderList()
+		statuslist := networking.GetStatusList()
+		orderlist := networking.GetOrderList()
 //		insidelist := networking.GetInsideList()
 		Println("Statuslist: ", statuslist)
 		Println("Ordreliste: ", orderlist)
 //		Println("Insidelist: ", insidelist)
-		Println(order)
-		Println(state)
+//		Println(order)
+//		Println(state)
 		time.Sleep(100 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()
