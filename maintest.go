@@ -30,7 +30,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 //	Println("Myip: ",myip)
 	orderlist := networking.GetOrderList()
 //	Println("orderlist: ", orderlist)
-	Println("Statelist: ", statelist)
+	//Println("Statelist: ", statelist)
 //	Println("Connections: ", conf.Elevators)
 //	Println("MYIP: ", myip)
 	insideloop:
@@ -38,18 +38,18 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
         if order. Direction!=elevator.BUTTON_COMMAND{
 			continue insideloop
 		}
-		Println("Sjekker Inside: ", order)
+		//Println("Sjekker Inside: ", order)
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
-				Println("Status: ", status.Source)
-				Println("Order: ", order.Source)
-				Println("Myip: ", myip)
+				//Println("Status: ", status.Source)
+				//Println("Order: ", order.Source)
+				//Println("Myip: ", myip)
 				if (((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor) && status.Source==order.Source){
 					if status.Source==myip{
-						Println("Jeg tar: ", order)
+						//Println("Jeg tar: ", order)
 						return order
 					}else{
-						Println("slettet1: ", elevator.Address)
+						//Println("slettet1: ", elevator.Address)
 						delete(statelist,elevator.Address)
 						continue insideloop
 					}
@@ -60,10 +60,10 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)&& status.Source==order.Source){
 					if status.Source==myip{
-						Println("Jeg tar: ", order)
+						//Println("Jeg tar: ", order)
 						return order
 					}else{
-						Println("slettet2: ", elevator.Address)
+						//Println("slettet2: ", elevator.Address)
 						delete(statelist,elevator.Address)
 						continue insideloop
 					}
@@ -76,14 +76,14 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
         if order. Direction==elevator.BUTTON_COMMAND{
 			continue orderloop
 		}
-		Println("Sjekker Outside: ", order)
-		Println("Konkurerer med: ", statelist)
+		//Println("Sjekker Outside: ", order)
+		//Println("Konkurerer med: ", statelist)
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
 				if status,ok := statelist[elevator.Address]; ok{
 					if (i!=0 && (status.State=="UP" && status.LastFloor+i==order.Floor) || (status.State=="DOWN" && status.LastFloor-i==order.Floor)){
 						if statelist[elevator.Address].Source==myip{
-						Println("Jeg tar: ", order)
+						//Println("Jeg tar: ", order)
 							return order
 						}else{
 							delete(statelist,elevator.Address)
@@ -96,7 +96,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 				if status,ok := statelist[elevator.Address]; ok{
 					if status.State=="IDLE" && (status.LastFloor==order.Floor+i || status.LastFloor==order.Floor-i){
 						if statelist[elevator.Address].Source==myip{
-							Println("Jeg tar: ", order)
+							//Println("Jeg tar: ", order)
 							return order
 						}else{
 							delete(statelist,elevator.Address)

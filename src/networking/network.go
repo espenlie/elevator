@@ -12,6 +12,11 @@ import (
     "drivers"
 )
 
+type Con struct {
+    Address *net.TCPConn
+    Connect bool
+}
+
 var elevators = make(map[string]bool)
 var orderlist = make([]Order, 0)
 var statuslist = make(map[string]Status)
@@ -41,11 +46,6 @@ func UnpackNetworkMessage(pack []byte) Networkmessage{
 		fmt.Println("Could not unpack message: ", err.Error())
 	}
 	return message
-}
-
-type Con struct {
-    Address *net.TCPConn
-    Connect bool
 }
 
 func InitUpdate(connection *net.TCPConn, myip string) {
@@ -82,11 +82,13 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
     }
 }
 
-
 func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
             if con == connection {
-                connections = append(connections[:i], connections[i+1:]...)
+                fmt.Println("before: ",connections)
+//              connections = append(connections[:i], connections[i+1:]...)
+                connections[len(connections)-1], connections[i], connections = nil, connections[len(connections)-1], connections[:len(connections)-1]
+                fmt.Println("after: ",connections)
                 return connections,nil
             }
         }
@@ -97,20 +99,22 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     local, _ := net.ResolveTCPAddr("tcp", "localhost"+port)
     localconn, _ := net.DialTCP("tcp",nil,local)
     connect_c <- Con{Address:localconn,Connect:true}
+    fmt.Println("ELEV",elevators)
     for{
         elevatorloop:
 	    for _,elevator := range elevators{
+            fmt.Println("DIALER:",elevator)
             for _, connection := range connections {
-//              fmt.Println(connection)
-//              fmt.Println(connection.RemoteAddr().String())
+                fmt.Println(connection.RemoteAddr().String(), connection)
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
                 }
             }
+            fmt.Println("DIALING")
             raddr, err := net.ResolveTCPAddr("tcp",elevator.Address+port)
             dialConn, err := net.DialTCP("tcp", nil, raddr)
             if err != nil {
-//              fmt.Println("Dial ERROR: ", err)
+                fmt.Println("Dial ERROR: ", err)
             }else{
                 connect_c <- Con{Address:dialConn, Connect:true}
                 fmt.Println("Adding: ",dialConn.RemoteAddr().String())
@@ -237,6 +241,13 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
             case err := <- error_c: {
                 fmt.Println("ERROR: "+err)
             }
+//          default:{
+//              fmt.Println("My connections: ")
+//              for _, connection := range connections {
+//                  fmt.Println(connection.RemoteAddr().String())
+//              }
+//              time.Sleep(time.Microsecond)
+//          }
         }
     }
 }
