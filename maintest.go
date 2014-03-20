@@ -30,7 +30,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 //	Println("Myip: ",myip)
 	orderlist := networking.GetOrderList()
 //	Println("orderlist: ", orderlist)
-//	Println("Statelist: ", statelist)
+	Println("Statelist: ", statelist)
 //	Println("Connections: ", conf.Elevators)
 //	Println("MYIP: ", myip)
 	insideloop:
@@ -41,7 +41,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		Println("Sjekker Inside: ", order)
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
-				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor){
+				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor && status.Source==order.Source){
 					if order.Source==myip{
 						Println("Jeg tar: ", order)
 						return order
@@ -54,7 +54,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		}
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
-				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)){
+				if ((status.State=="UP" && status.LastFloor>=order.Floor) || (status.State=="DOWN" && status.LastFloor<=order.Floor)&& status.Source==order.Source){
 					if order.Source==myip{
 						Println("Jeg tar: ", order)
 						return order
@@ -72,6 +72,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 			continue orderloop
 		}
 		Println("Sjekker Outside: ", order)
+		Println("Konkurerer med: ", statelist)
 		for i := 0; i < elevator.N_FLOORS; i++ {
 			for _, elevator :=range Elevatorlist{
 				if status,ok := statelist[elevator.Address]; ok{
@@ -132,7 +133,7 @@ func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, [
 		}
 	}
 	next := Nextorder(myip, elevators)
-//	Println("next: ", next)
+	Println("next: ", next)
 
 
 	if elevator.Elev_at_floor() && next.Floor==elevator.Current_floor(){  //Behoves denne?
