@@ -41,11 +41,15 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 		Println("Sjekker Inside: ", order)
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
-				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor && status.Source==order.Source){
-					if order.Source==myip{
+				Println("Status: ", status.Source)
+				Println("Order: ", order.Source)
+				Println("Myip: ", myip)
+				if (((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor) && status.Source==order.Source){
+					if status.Source==myip{
 						Println("Jeg tar: ", order)
 						return order
 					}else{
+						Println("slettet1: ", elevator.Address)
 						delete(statelist,elevator.Address)
 						continue insideloop
 					}
@@ -59,6 +63,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
 						Println("Jeg tar: ", order)
 						return order
 					}else{
+						Println("slettet2: ", elevator.Address)
 						delete(statelist,elevator.Address)
 						continue insideloop
 					}

@@ -22,9 +22,5 @@ type Networkmessage struct {
     Status  Status
 }
 
-var EmptyOrder = []Order{{ Direction  : elevator.BUTTON_CALL_UP,
-                        Floor       : 0,
-                        InOut       : 0,
-                        Source      : "",
-                        }}
+var EmptyOrder = []Order{Order{}}
 

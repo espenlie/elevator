@@ -26,7 +26,6 @@ func GetOrderList() []Order {
 }
 
 func PackNetworkMessage(message Networkmessage) []byte {
-//  fmt.Println("PACKING: ", message)
 	send, err := json.Marshal(message)
 	if err != nil {
 		fmt.Println("Could not pack message: ",err.Error())
