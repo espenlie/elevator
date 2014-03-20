@@ -108,7 +108,6 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
 	    for _,elevator := range elevators{
             fmt.Println("DIALER:",elevator)
             for _, connection := range cons {
-                fmt.Println(connection.RemoteAddr().String(), connection)
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
                 }
