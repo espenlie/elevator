@@ -233,6 +233,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
+                    fmt.Println("WILL wrtie: ",connection.RemoteAddr().String())
                     _, err := connection.Write(pack)
                     if err != nil{
                         error_c <- err.Error()
