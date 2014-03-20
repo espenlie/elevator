@@ -38,6 +38,7 @@ func Nextorder(myip string, Elevatorlist []misc.Elevator)networking.Order{
         if order. Direction!=elevator.BUTTON_COMMAND{
 			continue insideloop
 		}
+		Println("Sjekker Inside: ", order)
 		for _, elevator :=range Elevatorlist{
 			if status,ok := statelist[elevator.Address]; ok{
 				if ((status.State=="UP"  || status.State=="IDLE") && status.LastFloor<=order.Floor) || ((status.State=="DOWN" || status.State=="IDLE") && status.LastFloor>=order.Floor){

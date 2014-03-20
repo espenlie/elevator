@@ -260,7 +260,7 @@ func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state strin
 func SendStatuslist(generatedMsgs_c chan Networkmessage) {
     myip := misc.GetLocalIP()
     mystatus := statuslist[myip]
-    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,mystatus.State, mystatus.LastFloor,false,mystatus.Source)
+    generatedMsgs_c <- Networkmessage{Order:Order{}, Status: mystatus}
 }
 
 func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
@@ -272,7 +272,7 @@ func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
         }
     }
 //  fmt.Println("Sending status")
-    generatedMsgs_c <- GenerateMessage(elevator.BUTTON_CALL_UP,0,0,status.State, status.LastFloor,false,status.Source)
+    generatedMsgs_c <- Networkmessage{Order: Order{}, Status: status}
     return true
 }
 
