@@ -102,10 +102,7 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     fmt.Println("ELEV",elevators)
     for{
 
-        var cons []*net.TCPConn
-        for index, con := range connections {
-            cons[index]=con
-        }
+        cons := connections
         elevatorloop:
 	    for _,elevator := range elevators{
             fmt.Println("DIALER:",elevator)
