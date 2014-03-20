@@ -107,7 +107,7 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
 	    for _,elevator := range elevators{
             fmt.Println("DIALER:",elevator)
             for _, connection := range cons {
-//              fmt.Println(connection.RemoteAddr().String(), connection)
+                fmt.Println(connection.RemoteAddr().String(), connection)
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
                 }
@@ -190,11 +190,11 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     remoteip := strings.Split(connection.Address.RemoteAddr().String(), ":")[0]
 	                errorstate := Status{State: "ERROR", LastFloor: 0, Inhouse: false,Source: remoteip}
                     statuslist[remoteip] = errorstate
-                    connection.Address.Close()
                     _ , err := RemoveConnection(connections, connection.Address)
                     if err != nil {
                         error_c <- err.Error()
                     }
+                    connection.Address.Close()
                 }
 
             }
