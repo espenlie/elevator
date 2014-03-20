@@ -132,6 +132,7 @@ func Stop(myip string, mystate string)[]networking.Order{
 
 func nextstate(myip string, elevators []misc.Elevator, mystate string)(string, []networking.Order){
 	stop := Stop(myip, mystate)
+	Println("stop: ", stop)
 	for _ , order := range stop{
 		if elevator.Elev_at_floor() && order.Floor==elevator.Current_floor(){
 			return "DOOR_OPEN", stop
@@ -240,11 +241,11 @@ func main() {
 //		statuslist := networking.GetStatusList()
 //		orderlist := networking.GetOrderList()
 //		insidelist := networking.GetInsideList()
-//		Println("Statuslist: ", statuslist)
-//		Println("Ordreliste: ", orderlist)
+		Println("Statuslist: ", statuslist)
+		Println("Ordreliste: ", orderlist)
 //		Println("Insidelist: ", insidelist)
-//		Println(order)
-//		Println(state)
+		Println(order)
+		Println(state)
 		time.Sleep(100 * time.Millisecond)
 //		Println(state)
 		elevator.FloorUpdater()

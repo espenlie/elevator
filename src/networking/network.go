@@ -40,7 +40,6 @@ func PackNetworkMessage(message Networkmessage) []byte {
 
 func UnpackNetworkMessage(pack []byte) Networkmessage{
 	var message Networkmessage
-    fmt.Println("UNPACKING: ", string(pack))
 	err := json.Unmarshal(pack, &message)
 	if err != nil {
 		fmt.Println("Could not unpack message: ", err.Error())
@@ -85,10 +84,8 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string){
 func RemoveConnection(connections []*net.TCPConn, connection *net.TCPConn) ([]*net.TCPConn, error) {
         for i, con := range connections {
             if con == connection {
-                fmt.Println("before: ",connections)
 //              connections = append(connections[:i], connections[i+1:]...)
                 connections[len(connections)-1], connections[i], connections = nil, connections[len(connections)-1], connections[:len(connections)-1]
-                fmt.Println("after: ",connections)
                 return connections,nil
             }
         }
@@ -99,27 +96,22 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     local, _ := net.ResolveTCPAddr("tcp", "localhost"+port)
     localconn, _ := net.DialTCP("tcp",nil,local)
     connect_c <- Con{Address:localconn,Connect:true}
-    fmt.Println("ELEV",elevators)
     for{
 
         cons := connections
-        fmt.Println("CONS:",cons)
         elevatorloop:
 	    for _,elevator := range elevators{
-            fmt.Println("DIALER:",elevator)
             for _, connection := range cons {
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
                 }
             }
-            fmt.Println("DIALING")
             raddr, err := net.ResolveTCPAddr("tcp",elevator.Address+port)
             dialConn, err := net.DialTCP("tcp", nil, raddr)
             if err != nil {
                 fmt.Println("Dial ERROR: ", err)
             }else{
                 connect_c <- Con{Address:dialConn, Connect:true}
-                fmt.Println("Adding: ",dialConn.RemoteAddr().String())
             }
 		}
 	    time.Sleep(1000 * time.Millisecond)
@@ -186,14 +178,11 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                     go SendAliveMessages(connection.Address, error_c)
                     go InitUpdate(connection.Address, myip)
                 }else{
-                    fmt.Println("Removing: ",connection)
                     remoteip := strings.Split(connection.Address.RemoteAddr().String(), ":")[0]
 	                errorstate := Status{State: "ERROR", LastFloor: 0, Inhouse: false,Source: remoteip}
                     statuslist[remoteip] = errorstate
                     for i, con := range connections {
                         if con == connection.Address {
-                            fmt.Println("before: ",connections)
-            //              connections = append(connections[:i], connections[i+1:]...)
                             connections[len(connections)-1], connections[i], connections = nil, connections[len(connections)-1], connections[:len(connections)-1]
                         }
                     }
@@ -240,7 +229,6 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
-                    fmt.Println("WILL wrtie: ",connection.RemoteAddr().String())
                     _, err := connection.Write(pack)
                     if err != nil{
                         error_c <- err.Error()
