@@ -101,10 +101,15 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     connect_c <- Con{Address:localconn,Connect:true}
     fmt.Println("ELEV",elevators)
     for{
+
+        var cons []*net.TCPConn
+        for index, con := range connections {
+            cons[index]=con
+        }
         elevatorloop:
 	    for _,elevator := range elevators{
             fmt.Println("DIALER:",elevator)
-            for _, connection := range connections {
+            for _, connection := range cons {
 //              fmt.Println(connection.RemoteAddr().String(), connection)
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
