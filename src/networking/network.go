@@ -97,10 +97,9 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator){
     localconn, _ := net.DialTCP("tcp",nil,local)
     connect_c <- Con{Address:localconn,Connect:true}
     for{
-
-        cons := connections
         elevatorloop:
 	    for _,elevator := range elevators{
+            cons := connections
             for _, connection := range cons {
                 if strings.Split(connection.RemoteAddr().String(),":")[0] == elevator.Address {
                     continue elevatorloop
