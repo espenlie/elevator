@@ -2,7 +2,6 @@ package networking
 
 import (
     "misc"
-//  "bytes"
     "net"
     "fmt"
     "time"
@@ -10,22 +9,18 @@ import (
     "errors"
     "encoding/json"
     "elevator"
-//  "os"
     "drivers"
-
 )
+
 var elevators = make(map[string]bool)
 var orderlist = make([]Order, 0)
-//var insidelist = make([]Order, 0)
 var statuslist = make(map[string]Status)
 var connections =  make([]*net.TCPConn, 0)
 
 func GetStatusList() map[string]Status {
     return statuslist
 }
-//func GetInsideList() []Order {
-//  return insidelist
-//}
+
 func GetOrderList() []Order {
     return orderlist
 }
@@ -243,18 +238,8 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
             case err := <- error_c: {
                 fmt.Println("ERROR: "+err)
             }
-            default: {
-//              time.Sleep(time.Second)
-            }
-
         }
     }
-} 
-func GenerateMessage(dir elevator.Elev_button, floor int, inout int, state string, lastfloor int, inhouse bool, source string) Networkmessage {
-	s := Status{State: state, LastFloor: lastfloor, Inhouse: inhouse,Source:source}
-	o := Order{Direction:dir, Floor:floor, InOut:inout}
-	message := Networkmessage{Order:o,Status:s}
-	return message
 }
 
 func SendStatuslist(generatedMsgs_c chan Networkmessage) {
@@ -264,22 +249,16 @@ func SendStatuslist(generatedMsgs_c chan Networkmessage) {
 }
 
 func NewStatus(status Status, generatedMsgs_c chan Networkmessage) bool {
-//  fmt.Println("statuslist: ", statuslist)
-//  fmt.Println("Newstatus: ", status)
     for _, oldstat := range statuslist {
         if oldstat == status {
             return false
         }
     }
-//  fmt.Println("Sending status")
     generatedMsgs_c <- Networkmessage{Order: Order{}, Status: status}
     return true
 }
 
-
 func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
-//  fmt.Println("Orderlist: ",orderlist)
-//  fmt.Println("Order: ", order)
     if order. Direction!=elevator.BUTTON_COMMAND{
         order.Source=""
     }
@@ -288,7 +267,6 @@ func Neworder(generatedMsgs_c chan Networkmessage, order Order)bool{
             return false
         }
     }
-//  fmt.Println("Sending order")
-    generatedMsgs_c <- Networkmessage{Order:order, Status: Status{"",-1,false,""}}
+    generatedMsgs_c <- Networkmessage{Order:order, Status: Status{}}
     return true
 }
