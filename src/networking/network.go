@@ -58,12 +58,12 @@ func InitUpdate(connection *net.TCPConn, myip string) {
     pack := make([]byte,1024)
     status := statuslist[myip]
     pack = PackNetworkMessage(Networkmessage{Order:Order{}, Status:status})
-    connection.Write(pack)
     time.Sleep(10*time.Millisecond)
+    connection.Write(pack)
     for _,order := range orderlist {
+            time.Sleep(10*time.Millisecond)
             pack = PackNetworkMessage(Networkmessage{Order:order,Status: Status{}})
             connection.Write(pack)
-            time.Sleep(10*time.Millisecond)
     }
 }
 
@@ -157,6 +157,7 @@ func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connection
 }
 
 func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
+    time.Sleep(10*time.Millisecond)
     for {
         _, err := connection.Write([]byte("KEEPALIVE"))
         if err != nil {
