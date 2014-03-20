@@ -233,11 +233,11 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
                 pack := make([]byte,1024)
                 pack = PackNetworkMessage(message)
                 for _,connection := range connections {
-                    connection.Write(pack)
-//                  if err != nil{
-//                      error_c <- err.Error()
+                    _, err := connection.Write(pack)
+                    if err != nil{
+                        error_c <- err.Error()
 //                      connections_c <- Con{Address: connection, Connect: false}
-//                  }
+                    }
                 }
             }
             case err := <- error_c: {
