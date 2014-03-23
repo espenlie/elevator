@@ -124,7 +124,12 @@ func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connections
 	keepalivebyte := []byte("KEEPALIVE")
 receiverloop:
 	for {
-		conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		err := conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+		if err != nil {
+			error_c <- "Trouble setting read deadline: " + err.Error()
+			connections_c <- Con{Address: conn, Connect: false}
+			return
+		}
 		bit, err := conn.Read(buf[0:])
 		if err != nil {
 			error_c <- "Trouble receiving: " + err.Error()
