@@ -1,4 +1,8 @@
 #!/usr/bin/bash
 
-export GOPATH="$HOME/LL/elevator/"
+export GOPATH="$PWD"
+
+if [ ! -f elevator.log ]; then
+    touch elevator.log
+fi
 

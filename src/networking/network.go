@@ -4,10 +4,11 @@ import (
 	"drivers"
 	"elevator"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"log"
 	"misc"
 	"net"
+	"os"
 	"strings"
 	"time"
 )
@@ -30,36 +31,38 @@ func GetOrderList() []Order {
 	return orderlist
 }
 
-func PackNetworkMessage(message Networkmessage) []byte {
+func PackNetworkMessage(message Networkmessage, error_c chan string) []byte {
 	send, err := json.Marshal(message)
 	if err != nil {
-		fmt.Println("Could not pack message: ", err.Error())
+		error_c <- "Could not pack message: " + err.Error()
 	}
 	return send
 }
 
-func UnpackNetworkMessage(pack []byte) Networkmessage {
+func UnpackNetworkMessage(pack []byte, error_c chan string) Networkmessage {
 	var message Networkmessage
 	err := json.Unmarshal(pack, &message)
 	if err != nil {
-		fmt.Println("Could not unpack message: ", err.Error())
+		error_c <- "Could not unpack message: " + err.Error()
 	}
 	return message
 }
 
-func InitUpdate(connection *net.TCPConn, myip string) {
+//Generates and sends an initialization message to other elevators
+func InitUpdate(connection *net.TCPConn, myip string, error_c chan string) {
 	pack := make([]byte, 1024)
 	status := statuslist[myip]
-	pack = PackNetworkMessage(Networkmessage{Order: Order{}, Status: status})
+	pack = PackNetworkMessage(Networkmessage{Order: Order{}, Status: status}, error_c)
 	time.Sleep(10 * time.Millisecond)
 	connection.Write(pack)
 	for _, order := range orderlist {
 		time.Sleep(10 * time.Millisecond)
-		pack = PackNetworkMessage(Networkmessage{Order: order, Status: Status{}})
+		pack = PackNetworkMessage(Networkmessage{Order: order, Status: Status{}}, error_c)
 		connection.Write(pack)
 	}
 }
 
+//Check if there is any new orders, if it is it passes it to Neworder
 func Orderdistr(generatedMsgs_c chan Networkmessage, myip string) {
 	var butt elevator.Elev_button
 	for {
@@ -81,7 +84,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string) {
 	}
 }
 
-func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator) {
+func Dialer(connect_c chan Con, port string, elevators []misc.Elevator, error_c chan string) {
 	local, _ := net.ResolveTCPAddr("tcp", "localhost"+port)
 	localconn, _ := net.DialTCP("tcp", nil, local)
 	connect_c <- Con{Address: localconn, Connect: true}
@@ -97,7 +100,7 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator) {
 			raddr, err := net.ResolveTCPAddr("tcp", elevator.Address+port)
 			dialConn, err := net.DialTCP("tcp", nil, raddr)
 			if err != nil {
-				fmt.Println("Dial ERROR: ", err)
+				error_c <- "Dial trouble: " + err.Error()
 			} else {
 				connect_c <- Con{Address: dialConn, Connect: true}
 			}
@@ -106,17 +109,17 @@ func Dialer2(connect_c chan Con, port string, elevators []misc.Elevator) {
 	}
 }
 
-func Listener2(conn *net.TCPListener, connect_c chan Con) {
+func Listener(conn *net.TCPListener, connect_c chan Con, error_c chan string) {
 	for {
 		newConn, err := conn.AcceptTCP()
 		if err != nil {
-			fmt.Println("AcceptERROR: ", err)
+			error_c <- "Accept trouble: " + err.Error()
 		}
 		connect_c <- Con{Address: newConn, Connect: true}
 	}
 }
 
-func Receiver2(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connections_c chan Con) {
+func Receiver(conn *net.TCPConn, receivedMsgs_c chan Networkmessage, connections_c chan Con, error_c chan string) {
 	buf := make([]byte, 1024)
 	keepalivebyte := []byte("KEEPALIVE")
 receiverloop:
@@ -124,14 +127,14 @@ receiverloop:
 		conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 		bit, err := conn.Read(buf[0:])
 		if err != nil {
-			fmt.Println("Receiver:", err.Error())
+			error_c <- "Trouble receiving: " + err.Error()
 			connections_c <- Con{Address: conn, Connect: false}
 			return
 		}
 		if string(buf[:bit]) == string(keepalivebyte) {
 			continue receiverloop
 		}
-		unpacked := UnpackNetworkMessage(buf[:bit])
+		unpacked := UnpackNetworkMessage(buf[:bit], error_c)
 		receivedMsgs_c <- unpacked
 	}
 }
@@ -141,31 +144,38 @@ func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
 	for {
 		_, err := connection.Write([]byte("KEEPALIVE"))
 		if err != nil {
-			error_c <- err.Error()
+			error_c <- "Problems sending keepalive message: " + err.Error()
 			return
 		}
 		time.Sleep(time.Second)
 	}
 }
 
-func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
-	listenaddr, _ := net.ResolveTCPAddr("tcp", ":5555")
+//Function that controls all the network communication and connections
+func TCPPeerToPeer(conf misc.Config, myip string, generatedmessages_c chan Networkmessage) {
+	elevlog, err := os.OpenFile("elevator.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Println("Error opening file: " + err.Error())
+	}
+	defer elevlog.Close()
+	log.SetOutput(elevlog)
+	listenaddr, _ := net.ResolveTCPAddr("tcp", conf.DefaultListenPort)
 	listenconn, _ := net.ListenTCP("tcp", listenaddr)
 	connections_c := make(chan Con, 15)
 	receivedmessages_c := make(chan Networkmessage, 15)
 	error_c := make(chan string, 10)
-	go Listener2(listenconn, connections_c)
+	go Listener(listenconn, connections_c, error_c)
 	go Orderdistr(generatedmessages_c, myip)
-	go Dialer2(connections_c, ":5555", conf.Elevators)
+	go Dialer(connections_c, conf.DefaultListenPort, conf.Elevators, error_c)
 	for {
 		select {
 		case connection := <-connections_c:
 			{
 				if connection.Connect {
 					connections = append(connections, connection.Address)
-					go Receiver2(connection.Address, receivedmessages_c, connections_c)
+					go Receiver(connection.Address, receivedmessages_c, connections_c, error_c)
 					go SendAliveMessages(connection.Address, error_c)
-					go InitUpdate(connection.Address, myip)
+					go InitUpdate(connection.Address, myip, error_c)
 				} else {
 					remoteip := strings.Split(connection.Address.RemoteAddr().String(), ":")[0]
 					errorstate := Status{State: "ERROR", LastFloor: 0, Inhouse: false, Source: remoteip}
@@ -184,7 +194,7 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 
 				if received.Order.Floor > 0 {
 					if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
-						elevator.Elev_set_button_lamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
+						elevator.ElevSetButtonLamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)
 					}
 					if received.Order.Direction != elevator.BUTTON_COMMAND {
 						received.Order.Source = ""
@@ -215,18 +225,17 @@ func NetworkWrapper(conf misc.Config, myip string, generatedmessages_c chan Netw
 		case message := <-generatedmessages_c:
 			{
 				pack := make([]byte, 1024)
-				pack = PackNetworkMessage(message)
+				pack = PackNetworkMessage(message, error_c)
 				for _, connection := range connections {
 					_, err := connection.Write(pack)
 					if err != nil {
-						error_c <- err.Error()
-						//                      connections_c <- Con{Address: connection, Connect: false}
+						error_c <- "Problems writing to connection: " + err.Error()
 					}
 				}
 			}
 		case err := <-error_c:
 			{
-				fmt.Println("ERROR: " + err)
+				log.Println("ERROR: " + err)
 			}
 		}
 	}
