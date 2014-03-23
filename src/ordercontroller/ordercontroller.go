@@ -2,7 +2,6 @@ package ordercontroller
 
 import (
 	"elevator"
-	. "fmt"
 	"misc"
 	"networking"
 )
@@ -98,8 +97,9 @@ func Nextstate(myip string, elevators []misc.Elevator, mystate string) (string, 
 	if elevator.ElevGetObstructionSignal() {
 		elevator.ElevSetStopLamp(1)
 		return "ERROR", nil
-	} else {
+	} else if mystate == "ERROR" {
 		elevator.ElevSetStopLamp(0)
+		return "INIT", nil
 	}
 
 	stop := Stop(myip, mystate)
@@ -109,7 +109,6 @@ func Nextstate(myip string, elevators []misc.Elevator, mystate string) (string, 
 
 	next := Nextorder(myip, elevators)
 	if elevator.ElevAtFloor() && next.Floor == elevator.CurrentFloor() {
-		Println("DENNE KAN IKKE SLETTES!!!")
 		return "DOOR_OPEN", append(stop, next)
 	}
 	if next.Floor > elevator.CurrentFloor() {
