@@ -2,6 +2,12 @@
 
 export GOPATH="$PWD"
 
+go install networking
+go install ordercontroller
+go install drivers
+go install misc
+go install elevator
+
 if [ ! -f elevator.log ]; then
     touch elevator.log
 fi
