@@ -8,3 +8,5 @@ How to run:
 - Source the init file with . ./init
 - Run the program, ./elevator
 
+Tip:
+tail the logfile for errors (tail -f elevator.log)

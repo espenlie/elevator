@@ -24,25 +24,21 @@ func main() {
 	conf := misc.LoadConfig("./config/conf.json")
 
 	generatedmessages_c := make(chan networking.Networkmessage, 100)
-
 	go networking.TCPPeerToPeer(conf, myip, generatedmessages_c)
 
 	state := "INIT"
-
-	//	mystatus.LastFloor = elevator.Current_floor()
-	//	time.Sleep(1500 * time.Millisecond)
+	drivers.IoInit()
+	elevator.ElevInit()
 
 	for {
 		time.Sleep(10 * time.Millisecond)
-		elevator.FloorUpdater()
 		mystatus.State = state
+		elevator.FloorUpdater()
 		mystatus.LastFloor = elevator.CurrentFloor()
 		networking.NewStatus(mystatus, generatedmessages_c)
 		switch state {
 		case "INIT":
 			{
-				drivers.IoInit()
-				elevator.ElevInit()
 				elevator.ElevSetSpeed(-300)
 			}
 		case "IDLE":

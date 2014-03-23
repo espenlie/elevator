@@ -5,7 +5,7 @@ import (
 	"misc"
 	"networking"
 )
-
+//This function does a BFS-search through all orders to find the most effective solution
 func Nextorder(myip string, Elevatorlist []misc.Elevator) networking.Order {
 	var statelist = make(map[string]networking.Status)
 	statuslist := networking.GetStatusList()
@@ -34,12 +34,14 @@ insideloop:
 		}
 		for _, elevator := range Elevatorlist {
 			if status, ok := statelist[elevator.Address]; ok {
-				if (status.State == "UP" && status.LastFloor >= order.Floor) || (status.State == "DOWN" && status.LastFloor <= order.Floor) && status.Source == order.Source {
-					if status.Source == myip {
-						return order
-					} else {
-						delete(statelist, elevator.Address)
-						continue insideloop
+				if (status.State == "UP" && status.LastFloor >= order.Floor) || (status.State == "DOWN" && status.LastFloor <= order.Floor){
+					if status.Source == order.Source {
+						if status.Source == myip {
+							return order
+						} else {
+							delete(statelist, elevator.Address)
+							continue insideloop
+						}
 					}
 				}
 			}
@@ -80,6 +82,7 @@ orderloop:
 	return networking.EmptyOrder[0]
 }
 
+//This function return orders the elevator should stop for
 func Stop(myip string, mystate string) []networking.Order {
 	var takeorder []networking.Order
 	orderlist := networking.GetOrderList()
@@ -92,7 +95,7 @@ func Stop(myip string, mystate string) []networking.Order {
 	}
 	return takeorder
 }
-
+//This function returns the next state for the elevator
 func Nextstate(myip string, elevators []misc.Elevator, mystate string) (string, []networking.Order) {
 	if elevator.ElevGetObstructionSignal() {
 		elevator.ElevSetStopLamp(1)

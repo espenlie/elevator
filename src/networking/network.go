@@ -84,6 +84,7 @@ func Orderdistr(generatedMsgs_c chan Networkmessage, myip string) {
 	}
 }
 
+//Dials elevators in config that we do not have connection with
 func Dialer(connect_c chan Con, port string, elevators []misc.Elevator, error_c chan string) {
 	local, _ := net.ResolveTCPAddr("tcp", "localhost"+port)
 	localconn, _ := net.DialTCP("tcp", nil, local)
@@ -174,7 +175,7 @@ func TCPPeerToPeer(conf misc.Config, myip string, generatedmessages_c chan Netwo
 	go Dialer(connections_c, conf.DefaultListenPort, conf.Elevators, error_c)
 	for {
 		select {
-		case connection := <-connections_c:
+		case connection := <-connections_c: //Managing new/closed connections
 			{
 				if connection.Connect {
 					connections = append(connections, connection.Address)
@@ -196,7 +197,6 @@ func TCPPeerToPeer(conf misc.Config, myip string, generatedmessages_c chan Netwo
 			}
 		case received := <-receivedmessages_c:
 			{
-
 				if received.Order.Floor > 0 {
 					if !((received.Order.Direction == elevator.BUTTON_COMMAND) && (received.Order.Source != myip)) {
 						elevator.ElevSetButtonLamp(received.Order.Direction, received.Order.Floor, received.Order.InOut)

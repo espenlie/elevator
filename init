@@ -9,7 +9,8 @@ go install misc
 go install elevator
 go build
 
-if [ ! -f elevator.log ]; then
-    touch elevator.log
+if [ -f elevator.log ]; then
+    rm elevator.log
 fi
 
+touch elevator.log

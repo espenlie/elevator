@@ -15,7 +15,6 @@ type Elevator struct {
 
 type Config struct {
 	Elevators         []Elevator
-	DefaultDialPort   string
 	DefaultListenPort string
 	Timeout           int
 	NumFloors         int
@@ -37,7 +36,7 @@ func LoadConfig(filename string) Config {
 }
 
 func GetLocalIP() string {
-	oneliner := "ifconfig | grep 129.241.187 | cut -d':' -f2 | cut -d' ' -f1"
+	oneliner := "ifconfig | grep 129.241.187 | cut -d':' -f2 | cut -d' ' -f1" //Favourite Oneliner
 	cmd := exec.Command("bash", "-c", oneliner)
 	out, err := cmd.Output()
 	if err != nil {
