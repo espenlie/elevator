@@ -7,6 +7,7 @@ go install ordercontroller
 go install drivers
 go install misc
 go install elevator
+go build
 
 if [ ! -f elevator.log ]; then
     touch elevator.log
