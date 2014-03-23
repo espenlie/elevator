@@ -146,7 +146,6 @@ receiverloop:
 }
 
 func SendAliveMessages(connection *net.TCPConn, error_c chan string) {
-	time.Sleep(10 * time.Millisecond)
 	for {
 		_, err := connection.Write([]byte("KEEPALIVE"))
 		if err != nil {
